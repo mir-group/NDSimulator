@@ -9,4 +9,5 @@ List of typical CVs
    :maxdepth: 2
    :caption: Contents:
 
+   examples
    path
