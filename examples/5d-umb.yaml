@@ -1,0 +1,46 @@
+root: reference
+run_name: umb_0
+
+ndim: 5
+x0:
+- 18.0
+- 0.0
+- 18.0
+- 0.0
+- 100.0
+mass: 1.0
+potential: Mueller5d
+
+biases:
+- umb
+umb_k: 0.1
+umb_n: 1
+umb_r0:
+- 18
+- 18
+
+method: md
+integrate: 2nd-langevin
+md_gamma: 0.01
+temperature: 300.0
+dt: 1.0
+steps: 20000
+
+colvar_name: Proj5dto2d
+true_colvar_name: Proj5dto2d
+
+oneplot: true
+plot: true
+movie: false
+screen: true
+plot_boundary:
+- - 0.0
+  - 48.0
+- - 0.0
+  - 40.0
+
+dump: true
+dump_freq: 10
+track_pvf: true
+
+stat_freq: 10

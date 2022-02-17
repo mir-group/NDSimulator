@@ -1,0 +1,46 @@
+root: ./reference
+run_name: mtd
+
+potential: Mueller2d
+x0:
+- 22.0
+- 30.0
+mass: 1.0
+
+method: md
+temperature: 300
+integration: langevin
+gamma: 0.1
+steps: 100000
+dt: 1.0
+
+biases:
+- mtd
+mtd_biasf: 10.0
+mtd_dep_freq: 100
+mtd_sigma:
+- 2.0
+- 2.0
+mtd_w: 0.05
+
+plot: true
+light_plot: false
+oneplot: true
+plot_boundary:
+- - 0.0
+  - 48.0
+- - 0.0
+  - 40.0
+plot_ebound:
+- -1.4
+- 0.2
+plot_freq: 10
+plot_increment:
+- 1.0
+- 1.0
+movie: false
+
+dump: true
+dump_freq: 1000
+
+verbose: debug

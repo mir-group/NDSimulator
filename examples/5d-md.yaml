@@ -1,0 +1,26 @@
+colvar_name: 5dto2d
+dt: 1.0
+dump: true
+integrate: 2nd-langevin
+light_plot: true
+mass: 1.0
+md_fixdt: true
+md_gamma: 0.01
+method: md
+movie: false
+ndim: 5
+oneplot: true
+potential: mueller5d
+run_name: '0'
+screen: true
+stat_freq: 1
+steps: 2000
+temperature: 300.0
+track_pvf: true
+true_colvar_name: 5dto2d
+x0:
+- -1.46360358
+- -1.36303505
+- 1.67138561
+- -1.09839434
+- 0.89618678

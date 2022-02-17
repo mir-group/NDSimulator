@@ -1,0 +1,37 @@
+bound_cond: no bound
+colvar_name: original
+dump: true
+dump_freq: 1
+global_bounds:
+- 40.0
+- 40.0
+light_plot: true
+mass: 1.0
+mc_bounds:
+- 1.0
+- 1.0
+method: wl-mc
+movie: false
+ndim: 2
+oneplot: true
+plot_boundary:
+- 0.0
+- 48.0
+- 0.0
+- 40.0
+plot_ebound:
+- -1.4
+- 0.2
+plot_freq: 10
+plot_increment:
+- 1
+- 1
+potential: mueller2d
+propose_dim: single
+run_name: 2dwl
+steps: 1000
+temperature: 300
+true_colvar_name: original
+x0:
+- 20.0
+- 30.0

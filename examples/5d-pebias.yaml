@@ -1,0 +1,45 @@
+biases:
+- pe
+bound_cond: periodic
+colvar_name: 5dto2d
+dump: true
+dump_freq: 1
+global_bounds:
+- 40.0
+- 40.0
+- 40.0
+- 40.0
+- 40.0
+light_plot: true
+mass: 1.0
+mc_bounds:
+- 2.0
+- 2.0
+- 2.0
+- 2.0
+- 2.0
+method: mc
+ndim: 5
+oneplot: true
+pebias_thred: 0.0
+plot_boundary:
+- 0.0
+- 48.0
+- 0.0
+- 40.0
+plot_freq: 100
+plot_increment:
+- 1
+- 1
+potential: mueller5d
+propose_dim: single
+run_name: 5d_pebias
+steps: 10000
+temperature: 300
+true_colvar_name: 5dto2d
+x0:
+- 12.0
+- 12.0
+- 12.0
+- 12.0
+- 12.0
