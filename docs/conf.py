@@ -11,15 +11,12 @@ import sys
 
 sys.path.insert(0, os.path.abspath(".."))
 print("!!", os.getcwd())
-import ndsimulator
-print("!!", ndsimulator.__file__)
 
 
 # Project information
 project = "NDSimulator"
 copyright = "2021, MIR"
 author = "MIR"
-
 
 # -- General configuration ---------------------------------------------------
 
