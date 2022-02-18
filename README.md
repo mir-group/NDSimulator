@@ -1,5 +1,6 @@
 # NDSimulator
-----
+
+[![Documentation Status](https://readthedocs.org/projects/nequip/badge/?version=latest)](https://mir-group.github.io/NDSimulator/)
 
 A molecular dynamics tool for toy model systems.
 
