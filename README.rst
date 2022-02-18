@@ -56,4 +56,4 @@ options can be received via an inputs file
 
    ndsimulator examples/2d-md.yaml
 
-.. figure:: https://github.com/mir-group/NDSimulator_archive/raw/main/reference/instance_oneplot.png
+.. figure:: https://github.com/mir-group/NDSimulator/raw/main/reference/instance_oneplot.png
