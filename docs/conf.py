@@ -10,7 +10,9 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath(".."))
-print(os.getcwd())
+print("!!", os.getcwd())
+import ndsimulator
+print("!!", ndsimulator.__file__)
 
 
 # Project information
