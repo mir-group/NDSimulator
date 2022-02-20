@@ -18,7 +18,7 @@ class AllData:
             self.output = run.output
             self.stat = run.stat
             self.fixes = run.fixes
-            self.engine = run.engine
+            self.engine_method = run.engine
             self.plot = run.plot
             self.dump = run.dump
             self.colvar = run.colvar
@@ -38,7 +38,7 @@ class AllData:
             self.potential = None
             self.stat = None
             self.fixes = None
-            self.engine = None
+            self.engine_method = None
             self.plot = None
             self.dump = None
             self.colvar = None
@@ -66,7 +66,7 @@ class Atom(AllData):
         self.bforces = None
         self.T = None
 
-        if type(self.engine).__name__ != "Read_Dump":
+        if type(self.engine_method).__name__ != "Read_Dump":
             if not isinstance(run.x0, str):
                 self.positions = np.copy(run.x0)
             else:

@@ -31,8 +31,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 
-plt.switch_backend("agg")
-
 from ndsimulator.constant import kB
 from .plot import Plot
 

@@ -1,0 +1,12 @@
+potential: Mueller2d
+plot_boundary:
+- - 0.0
+  - 48.0
+- - 0.0
+  - 40.0
+plot_ebound:
+- -1.4
+- 0.2
+plot_increment:
+- 1.0
+- 1.0

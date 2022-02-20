@@ -27,8 +27,6 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.collections import LineCollection
 
-plt.switch_backend("agg")
-
 from ndsimulator.data import AllData
 from ndsimulator.constant import kB
 
@@ -71,6 +69,9 @@ class Plot(AllData):
 
         if oneplot and movie:
             raise NameError("movie and oneplot cannot be simultaneously true")
+
+        if oneplot:
+            plt.switch_backend("agg")
 
     def initialize(self, run):
         AllData.__init__(self, run)
@@ -321,6 +322,47 @@ class Plot(AllData):
             )
         plt.close()
 
+    def plot_PEL_2d(self, ax):
+        # plot potential energy contour
+        grid = self.increment
+        b = self.boundary
+        X = np.arange(b[0, 0], b[0, 1], grid[0])
+        Y = np.arange(b[1, 0], b[1, 1], grid[1])
+        X, Y = np.meshgrid(X, Y)
+        self.X = X
+        self.Y = Y
+        self.original_pe = self.potential.projection(X, Y)
+
+        if self.ebound is None:
+            self.ebound = np.zeros(2)
+            ave = np.average(self.original_pe)
+            std = np.std(self.original_pe)
+            self.ebound[0] = ave - 3 * std
+            self.ebound[1] = ave + 3 * std
+            if self.egrid is None:
+                self.egrid = std / 2.0
+        ebound = self.ebound
+
+        if self.egrid is None:
+            self.egrid = (ebound[1] - ebound[0]) / 10
+
+        self.levels = np.arange(ebound[0], ebound[1], self.egrid)
+
+        cset1 = ax.contourf(X, Y, self.original_pe, self.levels)
+        plt.colorbar(cset1, ax=ax)
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+
+    def plot_PEL_1d(self, ax):
+        # plot potential energy contour
+        grid = self.increment
+        b = self.boundary
+        X = np.arange(b[0, 0], b[0, 1], grid[0])
+        self.X = X
+        self.original_pe = self.potential.projection(X)
+        ax.plot(X, self.original_pe)
+        ax.set_ylabel("pe")
+
     def prepare_subplot1(self):
 
         if self.ndim == 2:
@@ -338,42 +380,14 @@ class Plot(AllData):
         grid = self.increment
         b = self.boundary
         if self.true_colvar.colvardim == 2:
-            X = np.arange(b[0, 0], b[0, 1], grid[0])
-            Y = np.arange(b[1, 0], b[1, 1], grid[1])
-            X, Y = np.meshgrid(X, Y)
-            self.X = X
-            self.Y = Y
-            self.original_pe = self.potential.projection(X, Y)
-
-            if self.ebound is None:
-                self.ebound = np.zeros(2)
-                ave = np.average(self.original_pe)
-                std = np.std(self.original_pe)
-                self.ebound[0] = ave - 3 * std
-                self.ebound[1] = ave + 3 * std
-                if self.egrid is None:
-                    self.egrid = std / 2.0
-            ebound = self.ebound
-
-            if self.egrid is None:
-                self.egrid = (ebound[1] - ebound[0]) / 10
-
-            self.levels = np.arange(ebound[0], ebound[1], self.egrid)
-
-            cset1 = ax0.contourf(X, Y, self.original_pe, self.levels)
-            plt.colorbar(cset1, ax=ax0)
+            self.plot_PEL_2d(ax0)
             true_colv = self.true_colvar.compute(pos)
             x = [true_colv[0]]
             y = [true_colv[1]]
-            ax0.set_ylabel("y")
         elif self.true_colvar.colvardim == 1:
-            X = np.arange(b[0, 0], b[0, 1], grid[0])
-            self.X = X
-            self.original_pe = self.potential.projection(X)
-            ax0.plot(X, self.original_pe)
+            self.plot_PEL_1d(ax0)
             x = self.true_colvar.compute(pos)
             y = self.atoms.pe
-            ax0.set_ylabel("pe")
         else:
             raise NameError(
                 f"light plot cannot handle {self.colvar.colvardim}-dimension colvar, please put plot=false to run"

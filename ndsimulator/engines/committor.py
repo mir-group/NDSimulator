@@ -1,7 +1,12 @@
 """
+Committor Analysis
+
 Class to run relaxation/minimization/one-way-shooting until it falls into a basin
 
-Lixin Sun, Harvard University, nw13mi0faso@gmail.com
+At the moment, only square boxes is implemented for committing criteria.
+Meaning, for each basin, one can define a box of [[x1_min, x1_max], [x2_min, x2_max], ..., [xn_min, xn_max]]
+once the simulation enter one of the basin boxes, the simulation will stop.
+
 """
 
 import numpy as np
@@ -14,19 +19,41 @@ from .minimize import Minimize
 
 
 class Committor(AllData):
+    """Committor simulation. MD engine that stops at basin or when it hits maximum steps.
+
+    Args:
+        n_basins (int): Number of basins
+        criteria (list): Commit criteria. [[[x1_min, x1_max], [x2_min, x2_max], ..., [xn_min, xn_max]], [2nd basin], ...]
+        diffusion_time (int, optional): . Defaults to 0.
+        run (AllData, optional): Pointers for AllData. Defaults to None.
+    """
+
     def __init__(
         self,
-        emin=-1.2,
-        basins=2,
-        criteria=[[[20, 25], [30, 35]], [[38, 50], [2, 10]]],
+        n_basins,
+        criteria,
+        engine_method,
+        engine_method_kwargs={},
         #                   [[30, 35], [13, 18]],
+        # =[[[20, 25], [30, 35]], [[38, 50], [2, 10]]],
         diffusion_time=0,
-        run=None,
+        emin: float = -1.2,
+        run: AllData = None,
     ):
         self.emin = emin
-        self.basins = basins
+        self.n_basins = n_basins
         self.criteria = np.array(criteria)
         self.diffusion_time = diffusion_time
+
+        self.engine_method, _ = instantiate(
+            engine_method,
+            # MD if self.kBT != 0 else Minimize,
+            # prefix="md" if self.kBT != 0 else "minimize",
+            optional_args=engine_method_kwargs,
+        )
+
+        assert len(self.criteria) == self.n_basins
+
         super(Committor, self).__init__(run)
 
     def initialize(self, run):
@@ -37,20 +64,19 @@ class Committor(AllData):
 
         AllData.__init__(self, run)
         self.stat.track_pvf = True
-        self.engine, _ = instantiate(
-            MD if self.kBT != 0 else Minimize,
-            prefix="md" if self.kBT != 0 else "minimize",
-            optional_args=run.as_dict(),
-        )
-        self.engine.initialize(run)
+        self.engine_method.initialize(run)
         self.commit_basin = -1
+
+        self.colvardim = self.colvar.colvardim
+        for ibasin, critirion in self.criteria:
+            assert len(critirion) == self.colvardim
 
     def begin(self):
         """
         trigger initialization
         """
 
-        self.engine.begin()
+        self.engine_method.begin()
 
     def update(self, step, time):
         """
@@ -63,11 +89,11 @@ class Committor(AllData):
         """
 
         if self.kBT != 0:
-            self.engine.update(step, time)
+            self.engine_method.update(step, time)
             nostop = True
         else:
-            self.engine.update()
-            nostop = not self.engine.stop
+            self.engine_method.update()
+            nostop = not self.engine_method.stop
         x = self.atoms.positions
 
         if step < self.diffusion_time:
@@ -96,11 +122,10 @@ class Committor(AllData):
         Args:
             nostop (boolean): True for not committed
         """
-        colvardim = len(colv)
         ib = -1
         for (idx, c) in enumerate(criteria):
             inbasin = True
-            for icolv in range(colvardim):
+            for icolv in range(self.colvardim):
                 if (colv[icolv] < c[icolv][0]) or (colv[icolv] > c[icolv][1]):
                     inbasin = False
 
@@ -117,4 +142,4 @@ class Committor(AllData):
 
     @property
     def current_dt(self):
-        return self.engine.current_dt
+        return self.engine_method.current_dt

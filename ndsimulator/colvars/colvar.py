@@ -6,20 +6,12 @@ class Colvar(AllData):
 
     colvardim = None
 
-    def __init__(self, dim=2, run=None):
-        self.dim = dim
+    def __init__(self, run=None):
         super(Colvar, self).__init__(run)
 
     def initialize(self, pointer):
         AllData.initialize(self, pointer)
         self.ndim = pointer.ndim
-        if self.colvardim is not None:
-            if self.colvardim != self.dim:
-                raise NameError(
-                    "dimension of collective variable {} does not match with the function {}".format(
-                        self.dim, self.colvardim
-                    )
-                )
 
     def compute(self, x):
         raise NotImplementedError

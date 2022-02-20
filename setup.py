@@ -26,6 +26,7 @@ setup(
         # make the scripts available as command line scripts
         "console_scripts": [
             "ndsimulator = ndsimulator.scripts.run:main",
+            "ndPEL = ndsimulator.scripts.plot_pot:main",
         ]
     },
     zip_safe=True,

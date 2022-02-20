@@ -5,37 +5,31 @@ from ndsimulator.potentials.potential import Potential
 
 class DoubleWell(Potential):
     ndim = 2
-    x0 = 20.0
-    y0 = 10
-    y1 = 30
+    x1 = np.array([20.0, 10.0])
+    x2 = np.array([20.0, 30.0])
     K1 = 1.0
-    K2 = 0.9
+    K2 = 1.0
     invsigma2 = 0.01
 
     def compute(self, x=None):
         if x is None:
             x = self.atoms.positions
         f = np.zeros(x.shape)
-        exp1 = np.exp(
-            -((x[0] - self.x0) ** 2) * self.invsigma2
-            - (x[1] - self.y0) ** 2 * self.invsigma2
-        )
-        exp2 = np.exp(
-            -((x[0] - self.x0) ** 2) * self.invsigma2
-            - (x[1] - self.y1) ** 2 * self.invsigma2
-        )
+        exp1 = np.exp(-np.sum((x - self.x1) ** 2) * self.invsigma2)
+        exp2 = np.exp(-np.sum((x - self.x2) ** 2) * self.invsigma2)
         V = -0.5 * (self.K1 * exp1 + self.K2 * exp2)
-        f[0] = -self.K1 * exp1 * (x[0] - self.x0) - self.K2 * exp2 * (x[0] - self.x0)
-        f[1] = -self.K1 * exp1 * (x[1] - self.y0) - self.K2 * exp2 * (x[1] - self.y1)
+        f = -self.K1 * exp1 * (x - self.x1) - self.K2 * exp2 * (x - self.x2)
         f *= self.invsigma2
         return V, f
 
     def projection(self, X, Y):
         exp1 = np.exp(
-            -((X - self.x0) ** 2) * self.invsigma2 - (Y - self.y0) ** 2 * self.invsigma2
+            -((X - self.x1[0]) ** 2) * self.invsigma2
+            - (Y - self.x1[1]) ** 2 * self.invsigma2
         )
         exp2 = np.exp(
-            -((X - self.x0) ** 2) * self.invsigma2 - (Y - self.y1) ** 2 * self.invsigma2
+            -((X - self.x2[0]) ** 2) * self.invsigma2
+            - (Y - self.x2[1]) ** 2 * self.invsigma2
         )
         V = -0.5 * (self.K1 * exp1 + self.K2 * exp2)
         return V
@@ -47,7 +41,7 @@ class Doublewell2dto1d(DoubleWell):
             x = self.atoms.positions
         xnew = self.true_colvar.compute(x)[0]
         jacobian = self.true_colvar.jacobian(x)
-        exp1 = np.exp(-((xnew - self.x0) ** 2) * self.invsigma2)
+        exp1 = np.exp(-((xnew - self.x0[1]) ** 2) * self.invsigma2)
         exp2 = np.exp(-((xnew - self.x1) ** 2) * self.invsigma2)
         V = -0.5 * (self.K1 * exp1 + self.K2 * exp2)
         f0 = -self.K1 * exp1 * (xnew - self.x0) - self.K2 * exp2 * (xnew - self.x0)

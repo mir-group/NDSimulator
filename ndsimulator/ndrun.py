@@ -100,10 +100,12 @@ class NDRun:
     ):
 
         _local_kwargs = {}
+        all_kwargs = {k: v for k, v in kwargs.items()}
         for key in self.init_keys:
             setattr(self, key, locals()[key])
             _local_kwargs[key] = locals()[key]
-        output = Output.get_output(dict(**_local_kwargs, **kwargs))
+            all_kwargs[key] = locals()[key]
+        output = Output.get_output(all_kwargs)
         self.output = output
         self.logfile = output.open_logfile("log", propagate=True)
 
@@ -130,7 +132,7 @@ class NDRun:
 
         self.potential = potential_from_config(kwargs)
 
-        self.engine = engine_from_config(method, kwargs)
+        self.engine = engine_from_config(method, all_kwargs)
 
         self.fixes = []
         for bias in biases:

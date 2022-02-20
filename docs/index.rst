@@ -8,6 +8,7 @@
    MD/index
    MTD/index
    UMB/index
+   Committor/index
    CV/index
    io/index
    advanced_options/index

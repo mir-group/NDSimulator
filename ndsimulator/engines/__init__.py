@@ -20,6 +20,8 @@ def engine_from_config(method, config):
         engine = Minimize
     elif method == "committor":
         engine = Committor
+        config["engine_method"] = MD if config["temperature"] != 0 else Minimize
+        # prefix="md" if self.kBT != 0 else "minimize",
     elif method == "read_dump":
         engine = ReadDump
     else:

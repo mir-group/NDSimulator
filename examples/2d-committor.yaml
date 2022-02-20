@@ -1,0 +1,50 @@
+root: ./reference
+run_name: committor_gamma_0.1
+
+mass: 1.0
+potential: Mueller2d
+x0:
+- 21.0
+- 17.0
+
+method: committor
+n_basins: 2
+criteria:
+- - - 20
+    - 25
+  - - 30
+    - 35
+- - - 38
+    - 50
+  - - 2
+    - 10
+
+integration: langevin
+
+gamma: 0.1
+temperature: 300
+
+dt: 1.0
+steps: 10000
+
+dump: true
+dump_freq: 100
+
+light_plot: true
+movie: false
+oneplot: true
+plot: false
+plot_boundary:
+- - 0.0
+  - 48.0
+- - 0.0
+  - 40.0
+plot_ebound:
+- -1.4
+- 0.2
+plot_freq: 100
+plot_increment:
+- 1.0
+- 1.0
+
+verbose: debug
