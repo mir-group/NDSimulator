@@ -40,12 +40,14 @@ class Committor(AllData):
         emin: float = -1.2,
         run: AllData = None,
     ):
+        super(Committor, self).__init__(run)
+
         self.emin = emin
         self.n_basins = n_basins
         self.criteria = np.array(criteria)
         self.diffusion_time = diffusion_time
 
-        self.engine_method, _ = instantiate(
+        self.engine_method, self.engine_method_kwargs = instantiate(
             engine_method,
             # MD if self.kBT != 0 else Minimize,
             # prefix="md" if self.kBT != 0 else "minimize",
@@ -54,7 +56,6 @@ class Committor(AllData):
 
         assert len(self.criteria) == self.n_basins
 
-        super(Committor, self).__init__(run)
 
     def initialize(self, run):
         """
@@ -64,11 +65,12 @@ class Committor(AllData):
 
         AllData.__init__(self, run)
         self.stat.track_pvf = True
+
         self.engine_method.initialize(run)
         self.commit_basin = -1
 
         self.colvardim = self.colvar.colvardim
-        for ibasin, critirion in self.criteria:
+        for ibasin, critirion in enumerate(self.criteria):
             assert len(critirion) == self.colvardim
 
     def begin(self):

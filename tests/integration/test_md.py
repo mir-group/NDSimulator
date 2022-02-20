@@ -1,5 +1,5 @@
 import pytest
-from copy import deepcopy
+from pyfile_utils import Config
 from ndsimulator.ndrun import NDRun
 
 
@@ -7,11 +7,13 @@ class TestMD:
     @pytest.mark.parametrize(
         "integrate", ["rescale", "langevin", "2nd-langevin", "nve"]
     )
-    def test_rescale(self, integrate, basic_md):
-        kwargs = deepcopy(basic_md)
-        kwargs["run_name"] = integrate
-        kwargs["integrate"] = integrate
-        run = NDRun(**kwargs)
+    def test_simple_md(self, tempdir, integrate):
+        config = Config.from_file("examples/2d-md.yaml")
+        config.root = tempdir
+        config.run_name = integrate
+        config.steps = config.steps // 100
+        config.integration=integrate
+        run = NDRun(**dict(config))
         run.begin()
         run.run()
         run.end()
