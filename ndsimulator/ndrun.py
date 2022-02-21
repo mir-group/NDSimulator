@@ -107,7 +107,7 @@ class NDRun:
             all_kwargs[key] = locals()[key]
         output = Output.get_output(all_kwargs)
         self.output = output
-        self.logfile = output.open_logfile("log", propagate=True)
+        self.logfile = output.open_logfile("log", screen=screen, propagate=False)
 
         if atoms is None:
             self.atoms, _ = instantiate(Atom, prefix="atom", optional_args=kwargs)
@@ -223,7 +223,7 @@ class NDRun:
 
             if self.screen and self.dump:
                 if self.step % self.dump.freq == 0:
-                    self.logger.info(f"{self.step} {self.stat.T[-1]}")
+                    self.logger.info(f"{self.step} temperature: {self.stat.T[-1]}")
                     # process = psutil.Process(os.getpid())
                     # self.logger.info(process.memory_info().rss)
             for fix in self.fixes:

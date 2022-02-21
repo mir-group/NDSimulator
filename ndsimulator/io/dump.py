@@ -51,7 +51,9 @@ class Dump(AllData):
 
     def open_files(self):
         self.log_files = dict(
-            thermo=self.output.open_logfile("thermo.dat", screen=True, propagate=True),
+            thermo=self.output.open_logfile(
+                "thermo.dat", screen=False, propagate=False
+            ),
             pos=self.output.open_logfile("pos.dat", screen=False, propagate=False),
             force=self.output.open_logfile("force.dat", screen=False, propagate=False),
             velocity=self.output.open_logfile(

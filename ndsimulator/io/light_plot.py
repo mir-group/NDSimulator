@@ -26,12 +26,11 @@ boundary: list of numbers, can be two or four elements
 
 """
 
+import logging
 from math import pi
-import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
+import numpy as np
 
-from ndsimulator.constant import kB
 from .plot import Plot
 
 
@@ -125,7 +124,7 @@ class LightPlot(Plot):
 
         if self.movie:
             filename = f"{self.root}/{self.run_name}/mf{self.movieframe}"
-            print(f"save fig {filename}.png")
+            logging.debug(f"save fig {filename}.png")
             plt.tight_layout()
             plt.savefig(f"{filename}.png", bbox_inches="tight")
             self.movieframe += 1
@@ -169,6 +168,6 @@ class LightPlot(Plot):
         ax4.set_ylabel("counts")
 
         filename = f"{self.root}/{self.run_name}/oneplot"
-        print(f"save fig {filename}.png")
+        logging.debug(f"save fig {filename}.png")
         plt.tight_layout()
         plt.savefig(f"{filename}.png", bbox_inches="tight")

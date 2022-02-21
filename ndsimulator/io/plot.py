@@ -20,9 +20,10 @@ Subplot 3: the trajectories of atoms at the guess colvar space
 Subplot 4: the negative of bias energy at the colvar space
 """
 
-import os
-import numpy as np
+import logging
 import matplotlib.pyplot as plt
+import numpy as np
+import os
 
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.collections import LineCollection
@@ -202,7 +203,7 @@ class Plot(AllData):
 
         if self.oneplot is False:
             fmt = self.type
-            print(f"save fig {self.root}/{self.run_name}/initial.{fmt}")
+            logging.debug(f"save fig {self.root}/{self.run_name}/initial.{fmt}")
             plt.tight_layout()
             plt.savefig(
                 f"{self.root}/{self.run_name}/initial.{fmt}", bbox_inches="tight"
@@ -264,7 +265,7 @@ class Plot(AllData):
 
         if self.movie:
             filename = f"{self.root}/{self.run_name}/mf{self.movieframe}"
-            print(f"save fig {filename}.png")
+            logging.debug(f"save fig {filename}.png")
             plt.tight_layout()
             plt.savefig(f"{filename}.png", bbox_inches="tight")
             self.movieframe += 1
@@ -307,10 +308,10 @@ class Plot(AllData):
 
         fmt = self.type
         filename = f"{self.root}/{self.run_name}/oneplot"
-        print(f"save fig {filename}.{fmt}")
+        logging.debug(f"save fig {filename}.{fmt}")
         plt.tight_layout()
         plt.savefig(f"{filename}.{fmt}", bbox_inches="tight")
-        print("end saving")
+        logging.debug("end saving")
 
     def end(self):
         fmt = self.type
