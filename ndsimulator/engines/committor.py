@@ -56,7 +56,6 @@ class Committor(AllData):
 
         assert len(self.criteria) == self.n_basins
 
-
     def initialize(self, run):
         """
         initialization. For finite temperature, set up MD engine.
@@ -64,7 +63,7 @@ class Committor(AllData):
         """
 
         AllData.__init__(self, run)
-        self.stat.track_pvf = True
+        self.stat.track_everything()
 
         self.engine_method.initialize(run)
         self.commit_basin = -1

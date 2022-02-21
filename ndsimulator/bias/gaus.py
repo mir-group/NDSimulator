@@ -71,7 +71,7 @@ class Gaussian(AllData):
         self.colvardim = self.colvar.colvardim
 
         if (self.adapsig) and (self.adapsig_geo is False):
-            self.stat.track_pvf = True
+            self.stat.track_everything()
 
         if isinstance(self.sigma, float):
             if self.colvardim > 1:

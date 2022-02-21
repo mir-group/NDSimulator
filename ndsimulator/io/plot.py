@@ -103,7 +103,7 @@ class Plot(AllData):
                 )
 
         if self.oneplot and self.dump:
-            self.dump.track_pvf = True
+            self.stat.track_everything()
 
         self.peline = None
         self.keline = None

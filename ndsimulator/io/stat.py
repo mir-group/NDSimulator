@@ -4,9 +4,13 @@ from ndsimulator.data import AllData
 
 
 class Stat(AllData):
-    def __init__(self, track_pvf: bool = False, freq: int = 1, mem: int = 100000):
+    def __init__(
+        self,
+        track: dict = {"p": False, "v": False, "f": False},
+        freq: int = 1,
+        mem: int = 100000,
+    ):
         AllData.__init__(self)
-        self.track_pvf = track_pvf
         self.freq = freq
         self.mem = mem
         self.T = []
@@ -20,14 +24,14 @@ class Stat(AllData):
         self.velocities = []
         self.forces = []
         self.colv = []
-        if track_pvf:
-            self.track_v = True
-            self.track_p = True
-            self.track_f = True
-        else:
-            self.track_v = False
-            self.track_p = False
-            self.track_f = False
+        self.track_v = track["v"]
+        self.track_p = track["p"]
+        self.track_f = track["f"]
+
+    def track_everything(self, option: bool = True):
+        self.track_v = option
+        self.track_p = option
+        self.track_f = option
 
     def initialize(self, run):
         AllData.__init__(self, run=run)
