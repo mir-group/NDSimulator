@@ -12,7 +12,7 @@ class TestMD:
         config.root = tempdir
         config.run_name = integrate
         config.steps = config.steps // 100
-        config.integration=integrate
+        config.integration = integrate
         run = NDRun(**dict(config))
         run.begin()
         run.run()

@@ -50,7 +50,10 @@ def main(args=None):
     plot, _ = instantiate(Plot, prefix="plot", optional_args=config)
     plot.potential = potential
     figure, ax = plt.subplots(figsize=(3.4, 2.5))
-    plot.plot_PEL_2d(ax)
+    if config.ndim == 2:
+        plot.plot_PEL_2d(ax)
+    elif config.ndim == 1:
+        plot.plot_PEL_1d(ax)
     figure.savefig(f"{type(potential).__name__}.png")
 
     return args

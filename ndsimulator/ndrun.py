@@ -53,7 +53,7 @@ class NDRun:
     """
 
     Args:
-        ndim (int, optional): The dimensionality of the energy landscape. Defaults to 2.
+        ndim (int): The dimensionality of the energy landscape. Defaults to 2.
         temperature(float, optional): Defaults to 300.0.
         mass (float, optional): Defaults to 5.
         steps (int, optional): Defaults to 100.
@@ -78,7 +78,7 @@ class NDRun:
 
     def __init__(
         self,
-        ndim: int = 2,
+        ndim: int,
         temperature: float = 300.0,
         mass: float = 5,
         steps: int = 100,

@@ -3,6 +3,32 @@ from ndsimulator.constant import kcal, escale, lscale
 from ndsimulator.potentials.potential import Potential
 
 
+class DoubleWell1d(Potential):
+    ndim = 1
+    x1 = 10.0
+    x2 = 30.0
+    K1 = 1.0
+    K2 = 1.0
+    invsigma2 = 0.01
+
+    def compute(self, x=None):
+        if x is None:
+            x = self.atoms.positions
+        f = np.zeros(x.shape)
+        exp1 = np.exp(-np.sum((x - self.x1) ** 2) * self.invsigma2)
+        exp2 = np.exp(-np.sum((x - self.x2) ** 2) * self.invsigma2)
+        V = -0.5 * (self.K1 * exp1 + self.K2 * exp2)
+        f = -self.K1 * exp1 * (x - self.x1) - self.K2 * exp2 * (x - self.x2)
+        f *= self.invsigma2
+        return V, f
+
+    def projection(self, X):
+        exp1 = np.exp(-((X - self.x1) ** 2) * self.invsigma2)
+        exp2 = np.exp(-((X - self.x2) ** 2) * self.invsigma2)
+        V = -0.5 * (self.K1 * exp1 + self.K2 * exp2)
+        return V
+
+
 class DoubleWell(Potential):
     ndim = 2
     x1 = np.array([20.0, 10.0])
@@ -35,7 +61,9 @@ class DoubleWell(Potential):
         return V
 
 
-class Doublewell2dto1d(DoubleWell):
+class DoubleWell2d(DoubleWell):
+    ndim = 1
+
     def compute(self, x=None):
         if x is None:
             x = self.atoms.positions
@@ -49,7 +77,7 @@ class Doublewell2dto1d(DoubleWell):
         f0 = f0 * jacobian
         return V, f0.reshape([-1])
 
-    def projection(self, X):
+    def projection(self, X, Y):
         exp1 = np.exp(-((X - self.x0) ** 2) * self.invsigma2)
         exp2 = np.exp(-((X - self.x1) ** 2) * self.invsigma2)
         V = -0.5 * (self.K1 * exp1 + self.K2 * exp2)
