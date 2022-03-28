@@ -4,12 +4,12 @@ from ndsimulator.potentials.potential import Potential
 
 
 class DoubleWell1d(Potential):
-    ndim = 1
-    x1 = 10.0
-    x2 = 30.0
-    K1 = 1.0
-    K2 = 1.0
-    invsigma2 = 0.01
+    def __init__(self, K1=1.0, K2=1.0, x1=10.0, x2=30.0, sigma=10):
+        self.K1 = K1
+        self.K2 = K2
+        self.x1 = x1
+        self.x2 = x2
+        self.invsigma2 = 1.0 / sigma / sigma
 
     def compute(self, x=None):
         if x is None:
@@ -29,13 +29,15 @@ class DoubleWell1d(Potential):
         return V
 
 
-class DoubleWell(Potential):
+class DoubleWell(DoubleWell1d):
     ndim = 2
-    x1 = np.array([20.0, 10.0])
-    x2 = np.array([20.0, 30.0])
-    K1 = 1.0
-    K2 = 1.0
-    invsigma2 = 0.01
+
+    def __init__(self, K1=1.0, K2=1.0, x1=[20.0, 10.0], x2=[20.0, 30.0], sigma=10):
+        self.K1 = K1
+        self.K2 = K2
+        self.x1 = np.array(x1)
+        self.x2 = np.array(x2)
+        self.invsigma2 = 1.0 / sigma / sigma
 
     def compute(self, x=None):
         if x is None:
@@ -61,7 +63,7 @@ class DoubleWell(Potential):
         return V
 
 
-class DoubleWell2d(DoubleWell):
+class DoubleWell2dto1d(DoubleWell):
     ndim = 1
 
     def compute(self, x=None):
