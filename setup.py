@@ -20,6 +20,7 @@ setup(
     packages=find_packages(include=[name, _name, _name + ".*"]),
     install_requires=[
         "numpy",
+        "matplotlib",
         "pyfile-utils>=1.0.4",
     ],
     entry_points={

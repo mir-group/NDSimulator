@@ -5,3 +5,4 @@ NDSimulator is an open-source package for running (accelerated) molecular dynami
 
 """
 from .ndrun import NDRun
+from ._version import __version__
