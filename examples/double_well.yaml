@@ -1,3 +1,4 @@
+ndim: 2
 potential: DoubleWell
 plot_boundary:
 - - 10.0

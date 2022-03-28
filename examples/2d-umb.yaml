@@ -1,6 +1,7 @@
 root: reference
 run_name: umb
 
+ndim: 2
 x0:
 - 18.0
 - 18.0

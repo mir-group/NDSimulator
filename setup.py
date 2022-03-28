@@ -20,7 +20,7 @@ setup(
     packages=find_packages(include=[name, _name, _name + ".*"]),
     install_requires=[
         "numpy",
-        "pyfile-utils>=1.0.2",
+        "pyfile-utils>=1.0.4",
     ],
     entry_points={
         # make the scripts available as command line scripts
