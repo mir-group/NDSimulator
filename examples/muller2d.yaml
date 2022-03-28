@@ -1,3 +1,4 @@
+ndim: 2
 potential: Mueller2d
 plot_boundary:
 - - 0.0

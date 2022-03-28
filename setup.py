@@ -16,11 +16,11 @@ setup(
     name=name,
     version=f"{version}",
     author="Lixin Sun",
-    python_requires=">=3.8",
+    python_requires=">=3.6.9",
     packages=find_packages(include=[name, _name, _name + ".*"]),
     install_requires=[
         "numpy",
-        "pyfile-utils>=1.0.2",
+        "pyfile-utils>=1.0.4",
     ],
     entry_points={
         # make the scripts available as command line scripts

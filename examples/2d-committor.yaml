@@ -1,6 +1,7 @@
 root: ./reference
 run_name: committor_gamma_0.1
 
+ndim: 2
 mass: 1.0
 potential: Mueller2d
 x0:

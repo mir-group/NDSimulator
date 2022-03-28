@@ -1,6 +1,7 @@
 root: ./reference
 run_name: mtd
 
+ndim: 2
 potential: Mueller2d
 x0:
 - 22.0
