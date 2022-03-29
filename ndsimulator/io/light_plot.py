@@ -120,7 +120,7 @@ class LightPlot(Plot):
             pos = self.atoms.positions
             line = ax5.scatter(pos[0], pos[1])
 
-        self.onetimeplot_subplot2(self.freq)
+        self.onetimeplot_subplot2(self.freq, self.ax2)
 
         if self.movie:
             filename = f"{self.root}/{self.run_name}/mf{self.movieframe}"
@@ -131,8 +131,8 @@ class LightPlot(Plot):
 
     def onetimeplot(self, last=False):
 
-        x, y = self.onetimeplot_subplot1()
-        self.onetimeplot_subplot2(self.freq)
+        x, y = self.onetimeplot_subplot1(self.ax0)
+        self.onetimeplot_subplot2(self.freq, self.ax2)
 
         self.ax3 = self.axs[1, 0]
         ax3 = self.ax3

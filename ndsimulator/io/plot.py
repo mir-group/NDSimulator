@@ -164,42 +164,42 @@ class Plot(AllData):
 
         # plot initial position in colvar splace in suplot 3
         self.ax3 = self.axs[1, 0]
-        ax3 = self.ax3
+        ax = self.ax3
         if self.oneplot is False:
             if self.colvar.colvardim == 2:
                 x = [self.atoms.colv[0]]
                 y = [self.atoms.colv[1]]
                 self.prev_colv = np.copy(self.atoms.colv)
-                line = ax3.plot(
+                line = ax.plot(
                     x, y, "o-", markersize=2.5, linewidth=1, color="k", alpha=1.0
                 )
             else:
                 x = self.atoms.colv[0]
                 timestep = self.stat.time[-1]
                 self.prev_colv = [timestep, self.atoms.colv[0]]
-                line = ax3.plot(
+                line = ax.plot(
                     timestep, x, "o-", markersize=2.5, linewidth=1, color="k", alpha=1.0
                 )
             self.colv_lines.append(line)
         if self.colvar.colvardim == 2:
-            ax3.set_xlabel("colvar1")
-            ax3.set_ylabel("colvar2")
+            ax.set_xlabel("colvar1")
+            ax.set_ylabel("colvar2")
         else:
-            ax3.set_ylabel("colvar1")
-            ax3.set_xlabel("timestep")
-        ax3.set_title("trajectory in colvar space")
+            ax.set_ylabel("colvar1")
+            ax.set_xlabel("timestep")
+        ax.set_title("trajectory in colvar space")
 
         # plot initial bias in colvar splace in suplot 4
         self.ax4 = self.axs[1, 1]
-        ax4 = self.ax4
+        ax = self.ax4
         self.cset3 = None
-        ax4.set_title("bias")
+        ax.set_title("bias")
         if self.colvar.colvardim == 2:
-            ax4.set_xlabel("colvar1")
-            ax4.set_ylabel("colvar2")
+            ax.set_xlabel("colvar1")
+            ax.set_ylabel("colvar2")
         else:
-            ax4.set_ylabel("predicted free energy")
-            ax4.set_xlabel("colvar1")
+            ax.set_ylabel("predicted free energy")
+            ax.set_xlabel("colvar1")
 
         if self.oneplot is False:
             fmt = self.type
@@ -231,8 +231,8 @@ class Plot(AllData):
         self.pos_lines.append(line)
         self.prev_pos = np.copy(true_colv)
 
-        self.onetimeplot_subplot2(self.freq)
-        self.onetimeplot_subplot4()
+        self.onetimeplot_subplot2(self.freq, self.ax2)
+        self.onetimeplot_subplot4(self.ax4)
 
         # plotting the biased landscape
         ax3 = self.ax3
@@ -274,9 +274,9 @@ class Plot(AllData):
 
         # plt.clf()
 
-        self.onetimeplot_subplot1()
-        self.onetimeplot_subplot2(self.freq)
-        self.onetimeplot_subplot4()
+        self.onetimeplot_subplot1(self.ax0)
+        self.onetimeplot_subplot2(self.freq, self.ax2)
+        self.onetimeplot_subplot4(self.ax4)
 
         # plotting the biased landscape
         freq = self.freq
@@ -411,9 +411,9 @@ class Plot(AllData):
         self.ax2 = self.ax1.twinx()
 
         if not self.oneplot:
-            self.onetimeplot_subplot2(1)
+            self.onetimeplot_subplot2(1, self.ax2)
 
-    def onetimeplot_subplot1(self):
+    def onetimeplot_subplot1(self, ax0):
 
         freq = self.freq
         npoints = len(self.stat.pe)
@@ -421,7 +421,6 @@ class Plot(AllData):
             stride = int(npoints / 1000.0)
         else:
             stride = 1
-        ax0 = self.ax0
         x = []
         y = []
         stat = self.stat
@@ -472,7 +471,7 @@ class Plot(AllData):
             self.ax5.scatter(pos[:, 0], pos[:, 1], c=pe)
         return x, y
 
-    def onetimeplot_subplot2(self, freq):
+    def onetimeplot_subplot2(self, freq, ax):
         stat = self.stat
         npoints = len(self.stat.pe)
         if npoints > 1000:
@@ -487,12 +486,11 @@ class Plot(AllData):
         te = stat.totale[::stride]
         biase = stat.biase[::stride]
 
-        ax2 = self.ax2
         if self.Tline:
             self.Tline.remove()
         else:
-            ax2.set_ylabel("temperature (K)", color="b")
-        (self.Tline,) = ax2.plot(timestep, T, "b-")
+            ax.set_ylabel("temperature (K)", color="b")
+        (self.Tline,) = ax.plot(timestep, T, "b-")
 
         ax1 = self.ax1
         if self.peline:
@@ -511,8 +509,7 @@ class Plot(AllData):
         (self.biaseline,) = ax1.plot(timestep, biase, "m-", label="bias")
         ax1.legend()
 
-    def onetimeplot_subplot4(self):
-        ax4 = self.ax4
+    def onetimeplot_subplot4(self, ax):
         if self.colvar.colvardim == 2:
             X = self.cX
             Y = self.cY
@@ -527,8 +524,8 @@ class Plot(AllData):
             #     self.colorbar3.draw_all()
             if self.cset3 is None:
                 b = self.colvboundary
-                self.cset3 = ax4.imshow(bias, extent=b.reshape([-1]), origin="lower")
-                self.colorbar3 = plt.colorbar(self.cset3, ax=ax4)
+                self.cset3 = ax.imshow(bias, extent=b.reshape([-1]), origin="lower")
+                self.colorbar3 = plt.colorbar(self.cset3, ax=ax)
             else:
                 self.cset3.set_data(bias)
                 self.colorbar3.draw_all()
@@ -545,7 +542,7 @@ class Plot(AllData):
                     new_alpha = old_alpha * self.decay
                     if new_alpha >= 0.5:
                         line[0].set_alpha(new_alpha)
-                line = ax4.plot(self.Xbias, bias, c="b", alpha=1.0)
+                line = ax.plot(self.Xbias, bias, c="b", alpha=1.0)
                 self.bias_lines.append(line)
 
                 for line in self.states_lines:
@@ -553,10 +550,10 @@ class Plot(AllData):
                     new_alpha = old_alpha * self.decay
                     if new_alpha >= 0.5:
                         line[0].set_alpha(new_alpha)
-                line = ax4.plot([self.atoms.colv[0]], [-batm], "bo-", alpha=1.0)
+                line = ax.plot([self.atoms.colv[0]], [-batm], "bo-", alpha=1.0)
                 self.states_lines.append(line)
             else:
                 bias = np.zeros(self.Xbias.shape)
                 for fix in self.fixes:
                     bias += fix.projection(self.Xbias, None)
-                self.cset3 = ax4.plot(self.Xbias, bias, "b")
+                self.cset3 = ax.plot(self.Xbias, bias, "b")

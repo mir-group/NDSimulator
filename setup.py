@@ -21,7 +21,7 @@ setup(
     install_requires=[
         "numpy",
         "matplotlib",
-        "pyfile-utils>=1.0.4",
+        "pyfile-utils>=1.0.5",
     ],
     entry_points={
         # make the scripts available as command line scripts
