@@ -57,14 +57,14 @@ class Path(Colvar):
 
         self.path_dim = self.ref.shape[1]
         self.N = int(self.ref_ind[-1])
-        self.sig2_invh = 1 / (self.sigma ** 2) / 2.0
+        self.sig2_invh = 1 / (self.sigma**2) / 2.0
 
         n_points = self.ref.shape[0]
         self.dref_mat = np.zeros([self.path_dim, n_points, n_points])
         for i in range(n_points):
             for j in range(n_points):
                 self.dref_mat[:, i, j] = self.ref_ind[i] * (self.ref[i] - self.ref[j])
-        self.dref_mat = self.dref_mat / self.sigma ** 2
+        self.dref_mat = self.dref_mat / self.sigma**2
 
         self.current_X = None
         self.nom = None

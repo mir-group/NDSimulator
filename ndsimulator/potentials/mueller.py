@@ -6,9 +6,9 @@ from ndsimulator.potentials.potential import Potential
 class Mueller2d(Potential):
     ndim = 2
     A = np.array([-200, -100, -170, 15]) * kcal * escale
-    a = np.array([-1, -1, -6.5, 0.7]) / (lscale ** 2)
-    b = np.array([0, 0, 11, 0.6]) / (lscale ** 2)
-    c = np.array([-10, -10, -6.5, 0.7]) / (lscale ** 2)
+    a = np.array([-1, -1, -6.5, 0.7]) / (lscale**2)
+    b = np.array([0, 0, 11, 0.6]) / (lscale**2)
+    c = np.array([-10, -10, -6.5, 0.7]) / (lscale**2)
 
     def __init__(
         self,

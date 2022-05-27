@@ -11,16 +11,16 @@ Simulation by Mark E. Tuckerman.
 
 .. math::
 
-   x(\Delta t) = x(0) + \Delta t v(0) + {{\Delta t^2}\over{2m}} F(x(0)) 
+   x(\Delta t) = x(0) + \Delta t v(0) + {{\Delta t^2}\over{2m}} F(x(0))
 
 .. math::
 
    v(\Delta t) = v(0) + {{\Delta t}\over{2m}} [F(x(0))+F(x(\Delta t))]
 
-The first and second order langevin integrator see 
+The first and second order langevin integrator see
 
   1. Chapter 15 of Statistical Mechanics: Theory and Molecular Simulation by Mark
-  E. Tuckerman 
+  E. Tuckerman
 
   2. Eq. 23 in E. V.-Eijnden, and G. Ciccotti, Chem.  Phys. Lett. 429, 310 (2006)
 
@@ -82,7 +82,7 @@ class MD(AllData):
         kBT = self.kBT
         if self.integrate == "langevin":
             c1 = np.exp(-self.gamma * dt / 2.0)
-            c2 = np.sqrt((1 - c1 ** 2) * kBT / self.m)
+            c2 = np.sqrt((1 - c1**2) * kBT / self.m)
             return c1, c2
         elif self.integrate == "2nd-langevin":
             frdt = (1.0 - np.exp(-self.gamma * dt / 2.0)) * 8.0
@@ -90,7 +90,7 @@ class MD(AllData):
             sigma = np.sqrt(2 * kBT * frdt / m)
             ndim = self.ndim
             c1 = dt / 2.0 - dt * frdt / 8.0
-            c2 = frdt / 2 - frdt ** 2 / 8.0
+            c2 = frdt / 2 - frdt**2 / 8.0
             c3 = np.sqrt(dt) * sigma / 2.0 * (1.0 - frdt / 4.0)
             c5 = np.sqrt(dt) * sigma / (2 * np.sqrt(ndim))
             c4 = frdt / 2.0 * c5
@@ -224,7 +224,7 @@ class MD(AllData):
                 v *= scale_factor
 
         np.copyto(atoms.velocities, v)
-        atoms.ke = np.sum(v ** 2) * m / 2.0
+        atoms.ke = np.sum(v**2) * m / 2.0
         atoms.T = atoms.ke / ndim / kB * 2.0
         atoms.totale = atoms.pe + atoms.ke + atoms.biase
 

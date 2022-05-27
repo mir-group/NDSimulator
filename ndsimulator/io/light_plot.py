@@ -29,6 +29,7 @@ boundary: list of numbers, can be two or four elements
 import logging
 from math import pi
 import matplotlib.pyplot as plt
+
 plt.set_loglevel("critical")
 import numpy as np
 
@@ -130,43 +131,45 @@ class LightPlot(Plot):
             plt.savefig(f"{filename}.png", bbox_inches="tight")
             self.movieframe += 1
 
-    def onetimeplot(self, last=False):
-
-        x, y = self.onetimeplot_subplot1(self.ax0)
-        self.onetimeplot_subplot2(self.freq, self.ax2)
-
-        self.ax3 = self.axs[1, 0]
-        ax3 = self.ax3
-        self.ax4 = self.axs[1, 1]
-        ax4 = self.ax4
-
+    def plot_poshist(self, ax, x, y):
         stat = self.stat
         if self.true_colvar.colvardim == 1:
-            ax3.hist(x, density=True)
-            ax3.set_xlabel("x")
-            ax3.set_ylabel("counts")
+            ax.hist(x, density=True, bins=100)
+            ax.set_xlabel("x")
+            ax.set_ylabel("counts")
         elif self.true_colvar.colvardim == 2:
-            ax3.hist2d(x, y, density=True)
-            ax3.set_xlabel("x")
-            ax3.set_ylabel("y")
+            ax.hist2d(x, y, density=True)
+            ax.set_xlabel("x")
+            ax.set_ylabel("y")
+
+    def plot_kehist(self, ax):
+
+        stat = self.stat
         kBT = self.kBT
-        ax4.hist(np.array(stat.ke) / kBT, bins=50, range=(0, 10), density=True)
+        ax.hist(np.array(stat.ke) / kBT, bins=50, range=(0, 10), density=True)
         Ek = np.arange(0, 10, 0.05)
         expEk = np.exp(-Ek)
         if self.ndim == 2:
             y = expEk
-            ax4.plot(Ek, y, "--")
+            ax.plot(Ek, y, "--")
         elif self.ndim == 3:
             y = expEk * 2 * np.sqrt(Ek / pi)
-            ax4.plot(Ek, y, "--")
+            ax.plot(Ek, y, "--")
         elif self.ndim == 4:
             y = expEk * Ek
-            ax4.plot(Ek, y, "--")
+            ax.plot(Ek, y, "--")
         elif self.ndim == 5:
             y = expEk * np.sqrt(Ek / pi) * Ek * 4 / 3.0
-            ax4.plot(Ek, y, "--")
-        ax4.set_xlabel("Kinetics Energy ($k_\\mathrm{B}T$)")
-        ax4.set_ylabel("counts")
+            ax.plot(Ek, y, "--")
+        ax.set_xlabel("Kinetics Energy ($k_\\mathrm{B}T$)")
+        ax.set_ylabel("counts")
+
+    def onetimeplot(self, last=False):
+
+        x, y = self.onetimeplot_subplot1(self.ax0)
+        self.onetimeplot_subplot2(self.freq, self.ax2)
+        self.plot_poshist(self.axs[1, 0], x, y)
+        self.plot_kehist(self.axs[1, 1])
 
         filename = f"{self.root}/{self.run_name}/oneplot"
         logging.debug(f"save fig {filename}.png")

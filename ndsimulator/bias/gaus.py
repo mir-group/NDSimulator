@@ -87,7 +87,7 @@ class Gaussian(AllData):
         #: the initial width of the gaussian bias
         #: an numpy array with dimensions of [colvardim, ]
         self._sigma = self.sigma
-        self._sigma2 = self._sigma ** 2
+        self._sigma2 = self._sigma**2
         self._invsigma2 = 1.0 / self._sigma2
         self.adapsig = self.adapsig
         self.adapsig_geo = self.adapsig_geo
@@ -239,7 +239,7 @@ class Gaussian(AllData):
             #: shape (_dep_count, ndim)
             dcolv = col - history
 
-            dcolv2 = dcolv ** 2
+            dcolv2 = dcolv**2
 
             dcolv_sigma2 = dcolv * self._invsigma2
 
@@ -311,7 +311,7 @@ class Gaussian(AllData):
 
             dcolv = col - history
             dcolv_sigma2 = dcolv * self._invsigma2
-            exponent = np.sum(dcolv ** 2 / 2.0 * self._invsigma2, axis=1)
+            exponent = np.sum(dcolv**2 / 2.0 * self._invsigma2, axis=1)
             VRarray = self._w * np.exp(-exponent)
             f = VRarray.dot(dcolv_sigma2)
             f = f.dot(jacobian)
@@ -343,7 +343,7 @@ class Gaussian(AllData):
         history = self._history
         if (history is not None) and (self.adapsig is False):
             dcolv = col - history
-            exponent = np.sum(dcolv ** 2 / 2.0 * self._invsigma2, axis=1)
+            exponent = np.sum(dcolv**2 / 2.0 * self._invsigma2, axis=1)
             VRarray = self._w * np.exp(-exponent)
             V = np.sum(VRarray)
         elif (history is not None) and (self.adapsig):

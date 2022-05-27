@@ -11,13 +11,13 @@ class ThreeHole2d(Potential):
     ls = 4.0
     ref = 2
     A = np.array([3, -3, -5, -5]) / es
-    a = np.array([-1, -1, -1, -1]) / (ls ** 2)
-    b = np.array([0, 0, 0, 0]) / (ls ** 2)
-    c = np.array([-1, -1, -1, -1]) / (ls ** 2)
+    a = np.array([-1, -1, -1, -1]) / (ls**2)
+    b = np.array([0, 0, 0, 0]) / (ls**2)
+    c = np.array([-1, -1, -1, -1]) / (ls**2)
     x0 = np.array([0, 0, 1, -1]) * ls + 7.5
     y0 = np.array([1 / 3.0, 5 / 3.0, 0, 0]) * ls + 7.5
-    D = 0.2 / (ls ** 4) / es
-    E = 0.2 / (ls ** 4) / es
+    D = 0.2 / (ls**4) / es
+    E = 0.2 / (ls**4) / es
     x1 = 0 * ls + 7.5
     y1 = 1 / 3.0 * ls + 7.5
 
@@ -77,13 +77,13 @@ class ThreeHole5d(Potential):
     ls = 4.0
     ref = 2
     A = np.array([3, -3, -5, -5]) / es
-    a = np.array([-1, -1, -1, -1]) / (ls ** 2)
-    b = np.array([0, 0, 0, 0]) / (ls ** 2)
-    c = np.array([-1, -1, -1, -1]) / (ls ** 2)
+    a = np.array([-1, -1, -1, -1]) / (ls**2)
+    b = np.array([0, 0, 0, 0]) / (ls**2)
+    c = np.array([-1, -1, -1, -1]) / (ls**2)
     x0 = np.array([0, 0, 1, -1]) * ls + 7.5
     y0 = np.array([1 / 3.0, 5 / 3.0, 0, 0]) * ls + 7.5
-    D = 0.2 / (ls ** 4) / es
-    E = 0.2 / (ls ** 4) / es
+    D = 0.2 / (ls**4) / es
+    E = 0.2 / (ls**4) / es
     x1 = 0 * ls + 7.5
     y1 = 1 / 3.0 * ls + 7.5
 

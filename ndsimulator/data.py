@@ -72,7 +72,7 @@ class Atom(AllData):
             else:
                 self.positions = self.random.rand(self.ndim)
             self.prev_positions = np.array(self.positions)
-            self.velocities = np.zeros(self.ndim)
+            self.velocities = None
             self.forces = np.zeros(self.ndim)
 
         self.pe = 0

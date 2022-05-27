@@ -15,10 +15,10 @@ gamma: 1
 temperature: 300
 
 dt: 1.0
-steps: 1000
+steps: 10000
 
 dump: true
-dump_freq: 1
+dump_freq: 10
 
 light_plot: true
 movie: false

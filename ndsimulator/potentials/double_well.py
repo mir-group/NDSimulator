@@ -105,7 +105,7 @@ class RingDoubleWell(DoubleWell):
         return V, f0
 
     def projection(self, X, Y):
-        newx = np.sqrt(X ** 2 + Y ** 2)
+        newx = np.sqrt(X**2 + Y**2)
         exp1 = np.exp(-((newx - self.x0) ** 2) * self.invsigma2)
         exp2 = np.exp(-((newx - self.x1) ** 2) * self.invsigma2)
         V = -0.5 * (self.K1 * exp1 + self.K2 * exp2)

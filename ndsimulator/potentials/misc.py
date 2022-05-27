@@ -7,8 +7,8 @@ from ndsimulator.potentials.potential import Potential
 class Gaussian2d(Potential):
     ndim = 2
     A = -200.0 * kcal * escale
-    a = -1.0 / (lscale ** 2)
-    c = -10.0 / (lscale ** 2)
+    a = -1.0 / (lscale**2)
+    c = -10.0 / (lscale**2)
     x0 = 20.0
     y0 = 20.0
 
@@ -44,8 +44,8 @@ class Gaussian(Potential):
 
     def projection(self, X, Y):
         sigma2 = 100  # 0.01
-        V1 = -np.exp(-((X - 0.5) ** 2 + Y ** 2) / sigma2)
-        V2 = -np.exp(-((X + 0.5) ** 2 + Y ** 2) / sigma2)
+        V1 = -np.exp(-((X - 0.5) ** 2 + Y**2) / sigma2)
+        V2 = -np.exp(-((X + 0.5) ** 2 + Y**2) / sigma2)
         return V1 + V2
 
 

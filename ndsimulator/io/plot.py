@@ -22,6 +22,7 @@ Subplot 4: the negative of bias energy at the colvar space
 
 import logging
 import matplotlib.pyplot as plt
+
 plt.set_loglevel("critical")
 import numpy as np
 import os

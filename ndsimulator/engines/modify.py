@@ -26,7 +26,7 @@ class Modify(AllData):
         v0 += (self.random.rand(ndim) - 0.5) * dv
         vnew_norm = np.linalg.norm(v0)
         v0 = v0 / vnew_norm * v0_norm
-        atoms.ke = np.sum(v0 ** 2) / 2.0 * m
+        atoms.ke = np.sum(v0**2) / 2.0 * m
         atoms.T = atoms.ke * 2.0 / float(ndim * kB)
         atoms.totale = atoms.ke + atoms.pe
         self.stat.modify()
@@ -42,19 +42,21 @@ class Modify(AllData):
         m = self.amass
 
         if T is not None:
-            kBT = kB * T
-            scale = np.sqrt(kBT / m)
-            atoms.velocities = scale * self.random.normal(0, 1, ndim)
+            scale = np.sqrt(kB * T / m)
+            u = np.array([self.random.normal(0, 1, 1) for i in range(ndim)]).reshape(
+                [-1]
+            )
+            atoms.velocities = scale * u
             v = atoms.velocities
-            Kinet = np.sum(v * v)
-            atoms.ke = Kinet / 2.0
-            atoms.T = Kinet / float(ndim * kB)
+            mv2 = m * np.sum(v * v)
+            atoms.ke = mv2 / 2.0
+            atoms.T = mv2 / float(ndim * kB)
             atoms.totale = atoms.ke + atoms.pe
         elif v is not None:
             atoms.velocities = np.copy(v)
-            Kinet = np.sum(v * v)
-            atoms.ke = Kinet / 2.0
-            atoms.T = Kinet / float(ndim * kB)
+            mv2 = m * np.sum(v * v)
+            atoms.ke = mv2 / 2.0
+            atoms.T = mv2 / float(ndim * kB)
             atoms.totale = atoms.ke + atoms.pe
             self.stat.modify()
         else:

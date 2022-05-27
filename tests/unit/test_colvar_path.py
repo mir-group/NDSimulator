@@ -90,8 +90,8 @@ class TestColvar:
         x0 = 2.52061352
         x4 = 8.59285082
         x3 = 0.42873581
-        x1 = np.sqrt(tx ** 2 - x0 ** 2 - 1e-7 * x4 ** 2)
-        x2 = np.sqrt(ty ** 2 - x3 ** 2)
+        x1 = np.sqrt(tx**2 - x0**2 - 1e-7 * x4**2)
+        x2 = np.sqrt(ty**2 - x3**2)
         center = np.array([x0, x1, x2, x3, x4])
         tcenter = np.array([tx, ty])
         p = cov.compute(center)

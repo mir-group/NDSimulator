@@ -30,6 +30,7 @@ import argparse
 from pyfile_utils import Config, instantiate
 
 import matplotlib.pyplot as plt
+
 plt.set_loglevel("info")
 
 from ndsimulator.potentials import potential_from_config

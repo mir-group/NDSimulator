@@ -120,7 +120,9 @@ class NDRun:
             self.random = np.random.RandomState(seed)
 
         self.colvar = (
-            colvar_from_config(dict(**kwargs, ndim=ndim), prefix="colvar") if colvar is None else colvar
+            colvar_from_config(dict(**kwargs, ndim=ndim), prefix="colvar")
+            if colvar is None
+            else colvar
         )
         self.true_colvar = (
             colvar_from_config(dict(**kwargs, ndim=ndim), prefix="true_colvar")
@@ -194,7 +196,7 @@ class NDRun:
             if atoms.velocities is None:
                 self.modify.set_velocity(T=self.temperature)
 
-            atoms.ke = np.sum(atoms.velocities ** 2) * atoms.amass / 2.0
+            atoms.ke = np.sum(atoms.velocities**2) * atoms.amass / 2.0
             atoms.T = atoms.ke / self.ndim * 2.0 / kB
             atoms.totale = atoms.ke + atoms.pe
             atoms.prev_colv = np.copy(atoms.colv)
