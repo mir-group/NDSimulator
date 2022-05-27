@@ -1,0 +1,8 @@
+name: ndsimulator
+channels:
+  - conda-forge
+dependencies:
+  - python=3.6.9
+  - pip:
+    - numpy
+    - matplotlib
