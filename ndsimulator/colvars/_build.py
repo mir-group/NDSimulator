@@ -17,5 +17,7 @@ def colvar_from_config(config, prefix: str = "colvar"):
         else:
             raise ValueError("cannot load the potential {func_name}")
 
+    if func_name == "Original":
+        config[prefix+"_dim"] = config.get("ndim", 2)
     instance, _ = instantiate(func_class, prefix=prefix, optional_args=config)
     return instance

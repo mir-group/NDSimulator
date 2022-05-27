@@ -6,7 +6,7 @@ from ndsimulator.data import AllData
 class Stat(AllData):
     def __init__(
         self,
-        track: dict = {"p": False, "v": False, "f": False},
+        track: dict = {"p": True, "v": False, "f": False},
         freq: int = 1,
         mem: int = 100000,
     ):

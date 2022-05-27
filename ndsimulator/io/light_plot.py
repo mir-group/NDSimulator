@@ -29,6 +29,7 @@ boundary: list of numbers, can be two or four elements
 import logging
 from math import pi
 import matplotlib.pyplot as plt
+plt.set_loglevel("critical")
 import numpy as np
 
 from .plot import Plot

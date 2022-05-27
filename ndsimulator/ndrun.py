@@ -120,10 +120,10 @@ class NDRun:
             self.random = np.random.RandomState(seed)
 
         self.colvar = (
-            colvar_from_config(kwargs, prefix="colvar") if colvar is None else colvar
+            colvar_from_config(dict(**kwargs, ndim=ndim), prefix="colvar") if colvar is None else colvar
         )
         self.true_colvar = (
-            colvar_from_config(kwargs, prefix="true_colvar")
+            colvar_from_config(dict(**kwargs, ndim=ndim), prefix="true_colvar")
             if true_colvar is None
             else true_colvar
         )
@@ -149,6 +149,8 @@ class NDRun:
             self.dump, _ = instantiate(Dump, prefix="dump", optional_args=kwargs)
         self.modify, _ = instantiate(Modify, prefix="modify", optional_args=kwargs)
 
+        self.x0 = np.array(self.x0).reshape((-1))
+
         self.atoms.initialize(self)
         self.engine.initialize(self)
         self.potential.initialize(self)
@@ -165,7 +167,6 @@ class NDRun:
 
         if method != "read_dump":
             if not isinstance(self.x0, str):
-                self.x0 = np.array(self.x0)
                 if self.x0.shape[0] != self.ndim:
                     raise NameError("wrong x0 dimension")
             else:

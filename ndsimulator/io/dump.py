@@ -9,8 +9,8 @@ After a simulation, the code will generate data files like below.
 
     ls reference/md_gamma_0.1/
     $ colvar.dat  force.dat  log  oneplot.png  pos.dat  thermo.dat  velocity.dat
-   
-All the dat files are managed by the ``Dump`` class. 
+
+All the dat files are managed by the ``Dump`` class.
 Each dat file includes the positions (pos.dat), forces (force.dat), velocities (velocity.dat), temperature (thermo.dat)
 
 """

@@ -31,6 +31,5 @@ plot_ebound:
 plot_freq: 100
 plot_increment:
 - 1.0
-- 1.0
 
-verbose: debug
+verbose: info

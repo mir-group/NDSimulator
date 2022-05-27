@@ -4,6 +4,8 @@ from ndsimulator.potentials.potential import Potential
 
 
 class DoubleWell1d(Potential):
+    ndim = 1
+
     def __init__(self, K1=1.0, K2=1.0, x1=10.0, x2=30.0, sigma=10):
         self.K1 = K1
         self.K2 = K2

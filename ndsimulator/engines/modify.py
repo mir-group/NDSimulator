@@ -1,11 +1,7 @@
 from ndsimulator.data import AllData
 from ndsimulator.constant import kB
 import os
-import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib
-
-matplotlib.use("Agg")
 
 
 class Modify(AllData):
