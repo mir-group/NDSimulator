@@ -71,58 +71,43 @@ class LightPlot(Plot):
             run=run,
         )
 
+    def plan_subplots(self):
+        self.fig, self.axs = plt.subplots(2, 2, figsize=(8, 6))
+        self.ax0 = self.axs[0, 0]
+        self.ax1 = self.axs[0, 1]
+        self.ax2 = self.ax1.twinx()
+        self.ax3 = self.axs[1, 0]
+        self.ax4 = self.axs[1, 1]
+
+    def onetimeplot(self, last=False):
+
+        x, y = self.onetime_some_colvar(self.ax0, self.true_colvar, "true")
+
+        self.plot_thermo(self.freq, self.ax1, self.ax2)
+        self.plot_colvar_hist(self.ax3, x, y, self.true_colvar, "true")
+        self.plot_kehist(self.ax4)
+
+        filename = f"{self.root}/{self.run_name}/oneplot"
+        logging.debug(f"save fig {filename}.png")
+        plt.tight_layout()
+        plt.savefig(f"{filename}.png", bbox_inches="tight")
+
     def begin(self):
 
         self.figure = plt.figure()
         plt.clf()
+        self.plan_subplots()
 
-        self.prepare_subplot1()
-        self.prepare_subplot2()
+        self.plot_PEL(self.ax0)
+        self.initialize_some_colvar_pos(self.ax0, self.true_colvar, "true")
 
     def update(self, last=False):
         if self.oneplot:
             return
 
-        ax0 = self.ax0
-        timestep = self.stat.time
-        cond1 = timestep[-1] > 0 and self.prev_timestep >= 0
-        cond2 = timestep[-1] < 0 and self.prev_timestep <= 0
-        if cond1 or cond2:
-            if self.true_colvar.colvardim == 2:
-                true_colv = self.true_colvar.compute(self.atoms.positions)
-            else:
-                true_colv = [
-                    self.true_colvar.compute(self.atoms.positions),
-                    self.atoms.pe,
-                ]
-            x = np.vstack([self.prev_pos[0], true_colv[0]])
-            y = np.vstack([self.prev_pos[1], true_colv[1]])
-        else:
-            true_colv = self.true_colvar.compute(self.atoms.positions)
-            x = [true_colv[0]]
-            if self.true_colvar.colvardim == 2:
-                y = [true_colv[1]]
-            else:
-                y = self.atoms.pe
-
-        if timestep[-1] >= 0:
-            scatter_color = "k"
-        else:
-            scatter_color = "r"
-
-        line = ax0.plot(
-            x, y, "o-", markersize=2.5, linewidth=1, color=scatter_color, alpha=1.0
-        )
-        self.pos_lines.append(line)
-        self.prev_pos = [x, y]
-        self.prev_timestep = self.stat.time[-1]
-
-        if self.ax5:
-            ax5 = self.ax5
-            pos = self.atoms.positions
-            line = ax5.scatter(pos[0], pos[1])
-
-        self.onetimeplot_subplot2(self.freq, self.ax2)
+        self.update_some_colvar_pos(self.ax0, self.true_colvar, "true")
+        self.plot_thermo(self.freq, self.ax1, self.ax2)
+        self.plot_kehist(self.ax4)
 
         if self.movie:
             filename = f"{self.root}/{self.run_name}/mf{self.movieframe}"
@@ -130,48 +115,3 @@ class LightPlot(Plot):
             plt.tight_layout()
             plt.savefig(f"{filename}.png", bbox_inches="tight")
             self.movieframe += 1
-
-    def plot_poshist(self, ax, x, y):
-        stat = self.stat
-        if self.true_colvar.colvardim == 1:
-            ax.hist(x, density=True, bins=100)
-            ax.set_xlabel("x")
-            ax.set_ylabel("counts")
-        elif self.true_colvar.colvardim == 2:
-            ax.hist2d(x, y, density=True)
-            ax.set_xlabel("x")
-            ax.set_ylabel("y")
-
-    def plot_kehist(self, ax):
-
-        stat = self.stat
-        kBT = self.kBT
-        ax.hist(np.array(stat.ke) / kBT, bins=50, range=(0, 10), density=True)
-        Ek = np.arange(0, 10, 0.05)
-        expEk = np.exp(-Ek)
-        if self.ndim == 2:
-            y = expEk
-            ax.plot(Ek, y, "--")
-        elif self.ndim == 3:
-            y = expEk * 2 * np.sqrt(Ek / pi)
-            ax.plot(Ek, y, "--")
-        elif self.ndim == 4:
-            y = expEk * Ek
-            ax.plot(Ek, y, "--")
-        elif self.ndim == 5:
-            y = expEk * np.sqrt(Ek / pi) * Ek * 4 / 3.0
-            ax.plot(Ek, y, "--")
-        ax.set_xlabel("Kinetics Energy ($k_\\mathrm{B}T$)")
-        ax.set_ylabel("counts")
-
-    def onetimeplot(self, last=False):
-
-        x, y = self.onetimeplot_subplot1(self.ax0)
-        self.onetimeplot_subplot2(self.freq, self.ax2)
-        self.plot_poshist(self.axs[1, 0], x, y)
-        self.plot_kehist(self.axs[1, 1])
-
-        filename = f"{self.root}/{self.run_name}/oneplot"
-        logging.debug(f"save fig {filename}.png")
-        plt.tight_layout()
-        plt.savefig(f"{filename}.png", bbox_inches="tight")

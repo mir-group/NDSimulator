@@ -18,6 +18,10 @@ Subplot 2: the potential/bias/total energy and temperature over
 Subplot 3: the trajectories of atoms at the guess colvar space
 
 Subplot 4: the negative of bias energy at the colvar space
+
+Subplot 5: pos distribution
+
+Subplot 6: ke distribution
 """
 
 import logging
@@ -76,6 +80,15 @@ class Plot(AllData):
         if oneplot:
             plt.switch_backend("agg")
 
+    @property
+    def stride(self):
+        npoints = len(self.stat.pe)
+        if npoints > 1000:
+            s = int(np.ceil(npoints / 1000.0))
+        else:
+            s = 1
+        return s
+
     def initialize(self, run):
         AllData.__init__(self, run)
 
@@ -85,7 +98,7 @@ class Plot(AllData):
                 f"boundary need 2 by {colvardim} elements for full plot mode"
             )
         if self.increment is None:
-            self.increment = np.ones(colvardim) * 0.01
+            self.increment = np.ones(colvardim) * (0.01).reshape([-1])
         elif self.increment.shape[0] != colvardim:
             raise ValueError(f"increment need {colvardim} elements for full plot mode")
 
@@ -115,9 +128,9 @@ class Plot(AllData):
         self.Tline = None
 
         self.prev_pos = None
-        self.prev_colv = None
+        self.prev_colv = {}
         self.pos_lines = []
-        self.colv_lines = []
+        self.colv_lines = {"true": [], "assumed": []}
         self.bias_lines = []
         self.states_lines = []
         self.decay = 0.9
@@ -134,74 +147,33 @@ class Plot(AllData):
         }
         self.OrangeAlpha = LinearSegmentedColormap("BlueRed1", cdict)
 
-    def begin(self):
+    def plan_subplots(self):
+
         self.figure = plt.figure(figsize=(12, 10))
         plt.clf()
-        # plt.ion()
+        self.fig, self.axs = plt.subplots(2, 3, figsize=(12, 6))
 
-        self.prepare_subplot1()
-        self.prepare_subplot2()
-
-        # prepare the grid for plot 4
-        cgrid = self.colvincrement
-        cb = self.colvboundary
-        if self.colvar.colvardim == 2:
-            cX = np.arange(cb[0, 0], cb[0, 1], cgrid[0])
-            cY = np.arange(cb[1, 0], cb[1, 1], cgrid[1])
-            cX, cY = np.meshgrid(cX, cY)
-            self.cX = cX
-            self.cY = cY
-            bias = np.zeros(cX.shape)
-            for fix in self.fixes:
-                bias += fix.projection(cX, cY)
-        elif self.colvar.colvardim == 1:
-            self.Xbias = np.arange(cb[0, 0], cb[0, 1], cgrid[0])
-            bias = np.zeros(self.Xbias.shape[0])
-            for fix in self.fixes:
-                bias += fix.projection(self.Xbias, None)
-        else:
-            raise NameError(
-                "plot can only handle 1d or 2d colvar, please put plot=false to run"
-            )
-
-        # plot initial position in colvar splace in suplot 3
+        self.ax0 = self.axs[0, 0]
+        self.ax1 = self.axs[0, 1]
+        self.ax2 = self.ax1.twinx()
         self.ax3 = self.axs[1, 0]
-        ax = self.ax3
-        if self.oneplot is False:
-            if self.colvar.colvardim == 2:
-                x = [self.atoms.colv[0]]
-                y = [self.atoms.colv[1]]
-                self.prev_colv = np.copy(self.atoms.colv)
-                line = ax.plot(
-                    x, y, "o-", markersize=2.5, linewidth=1, color="k", alpha=1.0
-                )
-            else:
-                x = self.atoms.colv[0]
-                timestep = self.stat.time[-1]
-                self.prev_colv = [timestep, self.atoms.colv[0]]
-                line = ax.plot(
-                    timestep, x, "o-", markersize=2.5, linewidth=1, color="k", alpha=1.0
-                )
-            self.colv_lines.append(line)
-        if self.colvar.colvardim == 2:
-            ax.set_xlabel("colvar1")
-            ax.set_ylabel("colvar2")
-        else:
-            ax.set_ylabel("colvar1")
-            ax.set_xlabel("timestep")
-        ax.set_title("trajectory in colvar space")
+        self.ax4 = self.axs[1, 1]
+        self.ax5 = self.axs[0, 2]
+        self.ax6 = self.axs[1, 2]
+
+    def begin(self):
+
+        self.plan_subplots()
+
+        self.plot_PEL(self.ax0)
+        if not self.oneplot:
+            self.plot_thermo(1, self.ax1, self.ax2)
+
+        self.initialize_some_colvar_pos(self.ax0, self.true_colvar, "true")
+        self.initialize_some_colvar_pos(self.ax3, self.colvar, "assumed")
 
         # plot initial bias in colvar splace in suplot 4
-        self.ax4 = self.axs[1, 1]
-        ax = self.ax4
-        self.cset3 = None
-        ax.set_title("bias")
-        if self.colvar.colvardim == 2:
-            ax.set_xlabel("colvar1")
-            ax.set_ylabel("colvar2")
-        else:
-            ax.set_ylabel("predicted free energy")
-            ax.set_xlabel("colvar1")
+        self.initialize_bias_landscape(self.ax4)
 
         if self.oneplot is False:
             fmt = self.type
@@ -218,52 +190,14 @@ class Plot(AllData):
         if self.oneplot:
             return
 
-        ax0 = self.ax0
+        self.update_some_colvar_pos(self.ax0, self.true_colvar, "true")
+        self.update_some_colvar_pos(self.ax3, self.colvar, "assumed")
 
-        true_colv = self.true_colvar.compute(self.atoms.positions)
-        x = np.hstack([self.prev_pos[0], true_colv[0]])
-        y = np.hstack([self.prev_pos[1], true_colv[1]])
-
-        for line in self.pos_lines:
-            old_alpha = line[0].get_alpha()
-            new_alpha = old_alpha - self.decay
-            if new_alpha >= 0.5:
-                line[0].set_alpha(new_alpha)
-        line = ax0.plot(x, y, "o-", markersize=2.5, linewidth=1, color="k", alpha=1.0)
-        self.pos_lines.append(line)
-        self.prev_pos = np.copy(true_colv)
-
-        self.onetimeplot_subplot2(self.freq, self.ax2)
-        self.onetimeplot_subplot4(self.ax4)
+        self.plot_thermo(self.freq, self.ax1, self.ax2)
+        self.plot_kehist(self.ax6)
 
         # plotting the biased landscape
-        ax3 = self.ax3
-        if self.colvar.colvardim == 2:
-            x = [self.prev_colv[0], self.atoms.colv[0]]
-            y = [self.prev_colv[1], self.atoms.colv[1]]
-            for line in self.colv_lines:
-                old_alpha = line[0].get_alpha()
-                new_alpha = old_alpha * self.decay
-                if new_alpha >= 0.5:
-                    line[0].set_alpha(new_alpha)
-            line = ax3.plot(
-                x, y, "o-", markersize=2.5, linewidth=1, color="k", alpha=1.0
-            )
-            self.prev_colv = np.copy(self.atoms.colv)
-        elif self.colvar.colvardim == 1:
-            x = [self.prev_colv[0], stat.time[-1]]
-            y = [self.prev_colv[1], self.atoms.colv[0]]
-            for line in self.colv_lines:
-                old_alpha = line[0].get_alpha()
-                new_alpha = old_alpha * self.decay
-                if new_alpha >= 0.5:
-                    line[0].set_alpha(new_alpha)
-            line = ax3.plot(
-                x, y, "o-", markersize=2.5, linewidth=1, color="k", alpha=1.0
-            )
-            self.prev_colv = [stat.time[-1], stat.atoms.colv[0]]
-        self.colv_lines.append(line)
-        # plt.colorbar(cset2)
+        self.onetimeplot_bias_landscape(self.ax4)
 
         if self.movie:
             filename = f"{self.root}/{self.run_name}/mf{self.movieframe}"
@@ -276,37 +210,13 @@ class Plot(AllData):
 
         # plt.clf()
 
-        self.onetimeplot_subplot1(self.ax0)
-        self.onetimeplot_subplot2(self.freq, self.ax2)
-        self.onetimeplot_subplot4(self.ax4)
+        x, y = self.onetime_some_colvar(self.ax0, self.true_colvar, "true")
+        self.onetime_some_colvar(self.ax3, self.colvar, "assumed")
 
-        # plotting the biased landscape
-        freq = self.freq
-        npoints = len(self.stat.pe)
-        if npoints > 1000:
-            stride = int(npoints / 1000.0)
-        else:
-            stride = 1
-        ax3 = self.ax3
-        stat = self.stat
-        x = []
-        y = []
-        timestep = self.stat.time[::stride]
-        if self.true_colvar.colvardim == 2:
-            for pos in stat.positions[::stride]:
-                true_colv = self.true_colvar.compute(pos)
-                x += [true_colv[0]]
-                y += [true_colv[1]]
-            line = ax3.plot(
-                x, y, "o-", markersize=2.5, linewidth=1, color="k", alpha=1.0
-            )
-        elif self.true_colvar.colvardim == 1:
-            for pos in stat.positions[::stride]:
-                colv = self.colvar.compute(pos)
-                x += [colv[0]]
-            line = ax3.plot(
-                timestep, x, "o-", markersize=2.5, linewidth=1, color="k", alpha=1.0
-            )
+        self.plot_thermo(self.freq, self.ax1, self.ax2)
+        self.onetimeplot_bias_landscape(self.ax4)
+        self.plot_colvar_hist(self.ax5, x, y, self.true_colvar, "true")
+        self.plot_kehist(self.ax6)
 
         fmt = self.type
         filename = f"{self.root}/{self.run_name}/oneplot"
@@ -366,79 +276,97 @@ class Plot(AllData):
         ax.plot(X, self.original_pe)
         ax.set_ylabel("pe")
 
-    def prepare_subplot1(self):
-
-        if self.ndim == 2:
-            self.fig, self.axs = plt.subplots(2, 3, figsize=(12, 6))
-            self.ax5 = self.axs[0, 2]
-        else:
-            self.fig, self.axs = plt.subplots(2, 2, figsize=(8, 6))
-            self.ax5 = None
-
-        self.ax0 = self.axs[0, 0]
-        ax0 = self.ax0
-        pos = self.atoms.positions
-
-        # plot potential energy contour
-        grid = self.increment
-        b = self.boundary
+    def plot_PEL(self, ax):
         if self.true_colvar.colvardim == 2:
-            self.plot_PEL_2d(ax0)
-            true_colv = self.true_colvar.compute(pos)
-            x = [true_colv[0]]
-            y = [true_colv[1]]
+            self.plot_PEL_2d(ax)
         elif self.true_colvar.colvardim == 1:
-            self.plot_PEL_1d(ax0)
-            x = self.true_colvar.compute(pos)
-            y = self.atoms.pe
+            self.plot_PEL_1d(ax)
         else:
             raise NameError(
                 f"light plot cannot handle {self.colvar.colvardim}-dimension colvar, please put plot=false to run"
             )
 
-        line = ax0.plot(x, y, "o-", markersize=2.5, linewidth=1, color="k", alpha=1.0)
-        self.pos_lines.append(line)
+    def initialize_some_colvar_pos(self, ax, colvar, name):
+        pos = colvar.compute(self.atoms.positions)
+        if self.oneplot is False:
+            if colvar.colvardim == 2:
+                x = [pos[0]]
+                y = [pos[1]]
+                self.prev_colv[name] = np.copy(pos)
+                line = ax.plot(
+                    x, y, "o-", markersize=2.5, linewidth=1, color="k", alpha=1.0
+                )
+            else:
+                timestep = self.stat.time[-1]
+                self.prev_colv[name] = [timestep, pos[0]]
+                line = ax.plot(
+                    timestep,
+                    pos[0],
+                    "o-",
+                    markersize=2.5,
+                    linewidth=1,
+                    color="k",
+                    alpha=1.0,
+                )
+            self.colv_lines[name].append(line)
 
-        self.prev_pos = [x, y]
-        self.prev_timestep = self.stat.time[-1]
-        ax0.set_xlabel("x")
-        ax0.set_title("trajectory in real colvar space")
+        if self.colvar.colvardim == 2:
+            ax.set_xlabel("$\\xi_1$")
+            ax.set_ylabel("$\\xi_2$")
+        else:
+            ax.set_ylabel("$\\xi$")
+            ax.set_xlabel("timestep")
+        ax.set_title(f"trajectory in {name} colvar space")
 
-        if self.ax5:
-            self.ax5.scatter(pos[0], pos[1], color="k")
+    def update_some_colvar_pos(self, ax, colvar, name):
+        pos = colvar.compute(self.atoms.positions)
+        if colvar.colvardim == 2:
+            x = [self.prev_colv[name][0], pos[0]]
+            y = [self.prev_colv[name][1], pos[1]]
+            for line in self.colv_lines[name]:
+                old_alpha = line[0].get_alpha()
+                new_alpha = old_alpha * self.decay
+                if new_alpha >= 0.5:
+                    line[0].set_alpha(new_alpha)
+            line = ax.plot(
+                x, y, "o-", markersize=2.5, linewidth=1, color="k", alpha=1.0
+            )
+            self.prev_colv[name] = np.copy(pos)
+        elif colvar.colvardim == 1:
+            x = [self.prev_colv[name][0], stat.time[-1]]
+            y = [self.prev_colv[name][1], pos[0]]
+            for line in self.colv_lines[name]:
+                old_alpha = line[0].get_alpha()
+                new_alpha = old_alpha * self.decay
+                if new_alpha >= 0.5:
+                    line[0].set_alpha(new_alpha)
+            line = ax.plot(
+                x, y, "o-", markersize=2.5, linewidth=1, color="k", alpha=1.0
+            )
+            self.prev_colv[name] = [stat.time[-1], pos[0]]
+        self.colv_lines[name].append(line)
+        # plt.colorbar(cset2)
 
-    def prepare_subplot2(self):
-
-        self.ax1 = self.axs[0, 1]
-        self.ax2 = self.ax1.twinx()
-
-        if not self.oneplot:
-            self.onetimeplot_subplot2(1, self.ax2)
-
-    def onetimeplot_subplot1(self, ax0):
+    def onetime_some_colvar(self, ax, colvar, name):
 
         freq = self.freq
-        npoints = len(self.stat.pe)
-        if npoints > 1000:
-            stride = int(npoints / 1000.0)
-        else:
-            stride = 1
+        stride = self.stride
         x = []
         y = []
         stat = self.stat
         nconfig = int(len(stat.positions) / float(stride))
         for idx in range(nconfig):
             pos = stat.positions[idx * stride]
-            true_colv = self.true_colvar.compute(pos)
-            x += [true_colv[0]]
-            if self.true_colvar.colvardim == 2:
-                y += [true_colv[1]]
+            colv = colvar.compute(pos)
+            x += [colv[0]]
+            if colvar.colvardim == 2:
+                y += [colv[1]]
             else:
                 y += [stat.pe[idx * stride]]
-        # ax0.plot(x, y, 'o-', markersize=2.5, linewidth=1,
+        # ax.plot(x, y, 'o-', markersize=2.5, linewidth=1,
         #                color='k', alpha=1.0)
 
-        ax0.scatter(
+        ax.scatter(
             x,
             y,
             c=np.arange(len(x)),
@@ -449,14 +377,14 @@ class Plot(AllData):
         seg = []
         pos = stat.positions
         for idx in range(nconfig - 1):
-            if self.true_colvar.colvardim == 2:
-                colv0 = self.true_colvar.compute(pos[idx * stride])
-                colv1 = self.true_colvar.compute(pos[idx * stride + stride])
+            if colvar.colvardim == 2:
+                colv0 = colvar.compute(pos[idx * stride])
+                colv1 = colvar.compute(pos[idx * stride + stride])
             else:
                 colv0 = np.zeros([2])
                 colv1 = np.zeros([2])
-                colv0[0] = self.true_colvar.compute(pos[idx * stride])
-                colv1[0] = self.true_colvar.compute(pos[idx * stride + stride])
+                colv0[0] = colvar.compute(pos[idx * stride])
+                colv1[0] = colvar.compute(pos[idx * stride + stride])
                 colv0[1] = stat.pe[idx * stride]
                 colv1[1] = stat.pe[idx * stride + stride]
             seg += [[[colv0[0], colv0[1]], [colv1[0], colv1[1]]]]
@@ -465,22 +393,14 @@ class Plot(AllData):
             seg, cmap=self.OrangeAlpha, linewidths=(0.1), linestyles="solid"
         )
         coll.set_array(np.arange(len(pos) - 1))
-        ax0.add_collection(coll)
+        ax.add_collection(coll)
 
-        pos = np.array(stat.positions)
-        if self.ax5 and len(pos):
-            pe = stat.pe
-            self.ax5.scatter(pos[:, 0], pos[:, 1], c=pe)
         return x, y
 
-    def onetimeplot_subplot2(self, freq, ax):
+    def plot_thermo(self, freq, ax_l, ax_r):
         stat = self.stat
-        npoints = len(self.stat.pe)
-        if npoints > 1000:
-            stride = int(npoints / 1000.0)
-        else:
-            stride = 1
 
+        stride = self.stride
         timestep = stat.time[::stride]
         pe = stat.pe[::stride]
         ke = stat.ke[::stride]
@@ -491,27 +411,60 @@ class Plot(AllData):
         if self.Tline:
             self.Tline.remove()
         else:
-            ax.set_ylabel("temperature (K)", color="b")
-        (self.Tline,) = ax.plot(timestep, T, "b-")
+            ax_l.set_ylabel("temperature (K)", color="b")
+            ax_l.set_xlabel("Timestep")
+        (self.Tline,) = ax_l.plot(timestep, T, "b-")
 
-        ax1 = self.ax1
         if self.peline:
             self.peline.remove()
             self.teline.remove()
             self.keline.remove()
             self.biaseline.remove()
         else:
-            ax1.set_title("energy-time")
-            ax1.set_xlabel("time")
-            ax1.set_ylabel("pe or total e")
+            ax_r.set_title("energy-time")
+            ax_r.set_ylabel("Energies")
+            ax_r.set_xlabel("Timestep")
 
-        (self.peline,) = ax1.plot(timestep, pe, "r-", label="pe")
-        (self.keline,) = ax1.plot(timestep, ke, "g-", label="ke")
-        (self.teline,) = ax1.plot(timestep, te, "k-", label="total")
-        (self.biaseline,) = ax1.plot(timestep, biase, "m-", label="bias")
-        ax1.legend()
+        (self.teline,) = ax_r.plot(timestep, te, "k-", label="total")
+        (self.peline,) = ax_r.plot(timestep, pe, "r-", label="pe")
+        (self.keline,) = ax_r.plot(timestep, ke, "g-", label="ke")
+        (self.biaseline,) = ax_r.plot(timestep, biase, "m-", label="bias")
+        ax_r.legend()
 
-    def onetimeplot_subplot4(self, ax):
+    def initialize_bias_landscape(self, ax):
+
+        # prepare the grid
+        cgrid = self.colvincrement
+        cb = self.colvboundary
+        if self.colvar.colvardim == 2:
+            cX = np.arange(cb[0, 0], cb[0, 1], cgrid[0])
+            cY = np.arange(cb[1, 0], cb[1, 1], cgrid[1])
+            cX, cY = np.meshgrid(cX, cY)
+            self.cX = cX
+            self.cY = cY
+            bias = np.zeros(cX.shape)
+            for fix in self.fixes:
+                bias += fix.projection(cX, cY)
+        elif self.colvar.colvardim == 1:
+            self.Xbias = np.arange(cb[0, 0], cb[0, 1], cgrid[0])
+            bias = np.zeros(self.Xbias.shape[0])
+            for fix in self.fixes:
+                bias += fix.projection(self.Xbias, None)
+        else:
+            raise NameError(
+                "plot can only handle 1d or 2d colvar, please put plot=false to run"
+            )
+
+        self.cset3 = None
+        ax.set_title("bias in assumed colvar space")
+        if self.colvar.colvardim == 2:
+            ax.set_xlabel("$\\xi_1$")
+            ax.set_ylabel("$\\xi_2$")
+        else:
+            ax.set_ylabel("predicted free energy")
+            ax.set_xlabel("$\\xi$")
+
+    def onetimeplot_bias_landscape(self, ax):
         if self.colvar.colvardim == 2:
             X = self.cX
             Y = self.cY
@@ -522,7 +475,7 @@ class Plot(AllData):
             emax = np.max(bias)
             levels = np.arange(emin, emax, self.egrid)
             # if (levels):
-            #     self.cset3 = ax4.contourf(X, Y, bias, levels)
+            #     self.cset3 = ax.contourf(X, Y, bias, levels)
             #     self.colorbar3.draw_all()
             if self.cset3 is None:
                 b = self.colvboundary
@@ -559,3 +512,37 @@ class Plot(AllData):
                 for fix in self.fixes:
                     bias += fix.projection(self.Xbias, None)
                 self.cset3 = ax.plot(self.Xbias, bias, "b")
+
+    def plot_colvar_hist(self, ax, x, y, colvar, name):
+        stat = self.stat
+        if colvar.colvardim == 1:
+            ax.hist(x, density=True, bins=100)
+            ax.set_xlabel("x")
+            ax.set_ylabel("counts")
+        elif colvar.colvardim == 2:
+            ax.hist2d(x, y, density=True)
+            ax.set_xlabel("x")
+            ax.set_ylabel("y")
+        ax.set_title(f"{name} Colvar Dist.")
+
+    def plot_kehist(self, ax):
+
+        stat = self.stat
+        kBT = self.kBT
+        ax.hist(np.array(stat.ke) / kBT, bins=50, range=(0, 10), density=True)
+        Ek = np.arange(0, 10, 0.05)
+        expEk = np.exp(-Ek)
+        if self.ndim == 2:
+            y = expEk
+        elif self.ndim == 3:
+            y = expEk * 2 * np.sqrt(Ek / pi)
+        elif self.ndim == 4:
+            y = expEk * Ek
+        elif self.ndim == 5:
+            y = expEk * np.sqrt(Ek / pi) * Ek * 4 / 3.0
+        if self.ndim <= 5 and self.ndim >= 2:
+            ax.plot(Ek, y, "--", label="Maxwell-Boltzmann")
+        ax.legend()
+        ax.set_xlabel("Kinetics Energy ($k_\\mathrm{B}T$)")
+        ax.set_ylabel("counts")
+        ax.set_title("Kinetics Energy Dist.")
