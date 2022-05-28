@@ -22,7 +22,6 @@ The simulation can be runned through a python interface as followed.
        integrate = "langevin",
        temperature = 300.0,
        md_gamma = 0.005,
-       light_plot = True,
    )
    simulation = NDRun(**params)
    simulation.begin()
@@ -45,7 +44,7 @@ from .bias import bias_from_config
 from .colvars import colvar_from_config
 from .constant import kB
 from .engines import engine_from_config, Modify
-from .io import Dump, Plot, LightPlot, Stat
+from .io import Dump, Plot, Stat
 from .potentials import potential_from_config
 
 
@@ -66,7 +65,6 @@ class NDRun:
         x0 (list, str, optional): initial positions. Defaults to [0.0, 0.0].
         biases (list, optional): list of biases. Defaults to [].
         plot (bool, optional): If True, the sampling process is plotted. Defaults to False.
-        light_plot (bool, optional): If True, only simple post analysis is plotted. Defaults to False.
         screen (bool, optional): If True, screen output is dumped. Defaults to True.
         dump (bool, optional): If True, the position history is logged. Defaults to True.
 
@@ -92,7 +90,6 @@ class NDRun:
         biases: Optional[list] = [],
         # trials=100,
         plot=False,
-        light_plot=False,
         screen=True,
         dump=True,
         # fileresult=True,
@@ -140,10 +137,7 @@ class NDRun:
         for bias in biases:
             self.fixes += bias_from_config(kwargs, bias)
 
-        if light_plot:
-            self.plot, _ = instantiate(LightPlot, prefix="plot", optional_args=kwargs)
-        elif plot:
-            self.plot, _ = instantiate(Plot, prefix="plot", optional_args=kwargs)
+        self.plot, _ = instantiate(Plot, prefix="plot", optional_args=kwargs)
 
         if self.method == "read_dump" or not dump:
             self.dump = None
@@ -152,6 +146,7 @@ class NDRun:
         self.modify, _ = instantiate(Modify, prefix="modify", optional_args=kwargs)
 
         self.x0 = np.array(self.x0).reshape((-1))
+        self.initial_temperature = kwargs.get("initial_temperature", self.temperature)
 
         self.atoms.initialize(self)
         self.engine.initialize(self)
@@ -194,7 +189,7 @@ class NDRun:
             np.copyto(atoms.prev_positions, atoms.positions)
 
             if atoms.velocities is None:
-                self.modify.set_velocity(T=self.temperature)
+                self.modify.set_velocity(T=self.initial_temperature)
 
             atoms.ke = np.sum(atoms.velocities**2) * atoms.amass / 2.0
             atoms.T = atoms.ke / self.ndim * 2.0 / kB

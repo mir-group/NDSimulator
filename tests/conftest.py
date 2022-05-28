@@ -28,6 +28,7 @@ def basic_md(tempdir):
         movie=False,
         dump=True,
         dump_freq=1,
+        boundary=[[2, 40], [2, 40]],
         verbose="debug",
     )
     yield _input
@@ -49,6 +50,7 @@ def basic_mc(tempdir):
         temperature=300,
         mass=1.0,
         x0=[12.0, 12.0],
+        boundary=[[2, 40], [2, 40]],
         plot=False,
         movie=False,
         dump=True,

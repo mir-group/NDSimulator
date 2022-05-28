@@ -25,7 +25,7 @@ mtd_sigma:
 mtd_w: 0.05
 
 plot: true
-light_plot: false
+plot_bias: true
 oneplot: true
 plot_boundary:
 - - 0.0

@@ -18,10 +18,9 @@ steps: 10000
 dump: true
 dump_freq: 1
 
-light_plot: true
 movie: false
 oneplot: true
-plot: false
+plot: true
 plot_boundary:
 - - 0.0
   - 40.0

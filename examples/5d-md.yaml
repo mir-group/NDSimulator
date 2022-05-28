@@ -2,7 +2,6 @@ colvar_name: 5dto2d
 dt: 1.0
 dump: true
 integrate: 2nd-langevin
-light_plot: true
 mass: 1.0
 md_fixdt: true
 md_gamma: 0.01

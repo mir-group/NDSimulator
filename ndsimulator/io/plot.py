@@ -54,6 +54,12 @@ class Plot(AllData):
         colvincrement=None,
         egrid=None,
         run=None,
+        pel=True,
+        kehist=True,
+        true_colvar=True,
+        assumed_colvar=False,
+        bias=False,
+        thermo=True,
     ):
         self.root = root
         self.run_name = run_name
@@ -71,7 +77,12 @@ class Plot(AllData):
         )
         self.egrid = egrid
         self.oneplot = oneplot
-        self.light_plot = False
+        self.pel_on = pel
+        self.kehist_on = kehist
+        self.true_colvar_on = true_colvar
+        self.assumed_colvar_on = assumed_colvar
+        self.thermo_on = thermo
+        self.bias_on = bias
         super(Plot, self).__init__(run)
 
         if oneplot and movie:
@@ -98,11 +109,11 @@ class Plot(AllData):
                 f"boundary need 2 by {colvardim} elements for full plot mode"
             )
         if self.increment is None:
-            self.increment = np.ones(colvardim) * (0.01).reshape([-1])
+            self.increment = np.ones(colvardim) * (0.01)
         elif self.increment.shape[0] != colvardim:
             raise ValueError(f"increment need {colvardim} elements for full plot mode")
 
-        if not self.light_plot:
+        if self.assumed_colvar_on:
             colvardim = self.colvar.colvardim
             if (
                 self.colvboundary.shape[0] != self.colvar.colvardim
@@ -149,31 +160,55 @@ class Plot(AllData):
 
     def plan_subplots(self):
 
-        self.figure = plt.figure(figsize=(12, 10))
-        plt.clf()
-        self.fig, self.axs = plt.subplots(2, 3, figsize=(12, 6))
+        n_axes = (
+            self.pel_on
+            + self.kehist_on
+            + self.true_colvar_on
+            + self.assumed_colvar_on
+            + self.bias_on
+            + self.thermo_on
+        )
+        n_col = int(np.ceil(n_axes / 2.0))
 
-        self.ax0 = self.axs[0, 0]
-        self.ax1 = self.axs[0, 1]
-        self.ax2 = self.ax1.twinx()
-        self.ax3 = self.axs[1, 0]
-        self.ax4 = self.axs[1, 1]
-        self.ax5 = self.axs[0, 2]
-        self.ax6 = self.axs[1, 2]
+        self.figure = plt.figure(figsize=(4 * n_col, 10))
+        plt.clf()
+        self.fig, self.axs = plt.subplots(2, n_col, figsize=(4 * n_col, 6))
+
+        axs_list = np.array(self.axs).reshape([-1])
+
+        self.ax_pos = axs_list[0]
+        count = 1
+        if self.kehist_on:
+            self.ax_kehist = axs_list[count]
+            count += 1
+        if self.thermo_on:
+            self.ax_thermo = axs_list[count]
+            self.ax_thermo_right = self.ax_thermo.twinx()
+            count += 1
+        if self.true_colvar_on:
+            self.ax_true_colvar = axs_list[count]
+            count += 1
+        if self.assumed_colvar_on:
+            self.ax_assumed_colvar = axs_list[count]
+            count += 1
+        if self.bias_on:
+            self.ax_bias = axs_list[count]
+            count += 1
 
     def begin(self):
 
         self.plan_subplots()
 
-        self.plot_PEL(self.ax0)
-        if not self.oneplot:
-            self.plot_thermo(1, self.ax1, self.ax2)
+        if self.pel_on:
+            self.plot_PEL(self.ax_pos)
+        self.initialize_some_colvar_pos(self.ax_pos, self.true_colvar, "true")
 
-        self.initialize_some_colvar_pos(self.ax0, self.true_colvar, "true")
-        self.initialize_some_colvar_pos(self.ax3, self.colvar, "assumed")
+        if self.thermo_on and not self.oneplot:
+            self.plot_thermo(1, self.ax_thermo, self.ax_thermo_right)
 
-        # plot initial bias in colvar splace in suplot 4
-        self.initialize_bias_landscape(self.ax4)
+        # plot initial bias in colvar splace
+        if self.bias_on:
+            self.initialize_bias_landscape(self.ax_bias)
 
         if self.oneplot is False:
             fmt = self.type
@@ -190,14 +225,16 @@ class Plot(AllData):
         if self.oneplot:
             return
 
-        self.update_some_colvar_pos(self.ax0, self.true_colvar, "true")
-        self.update_some_colvar_pos(self.ax3, self.colvar, "assumed")
+        self.update_some_colvar_pos(self.ax_pos, self.true_colvar, "true")
 
-        self.plot_thermo(self.freq, self.ax1, self.ax2)
-        self.plot_kehist(self.ax6)
+        if self.thermo_on:
+            self.plot_thermo(self.freq, self.ax_thermo, self.ax_thermo_right)
+        if self.kehist_on:
+            self.plot_kehist(self.ax_kehist)
 
         # plotting the biased landscape
-        self.onetimeplot_bias_landscape(self.ax4)
+        if self.bias_on:
+            self.onetimeplot_bias_landscape(self.ax_bias)
 
         if self.movie:
             filename = f"{self.root}/{self.run_name}/mf{self.movieframe}"
@@ -210,13 +247,21 @@ class Plot(AllData):
 
         # plt.clf()
 
-        x, y = self.onetime_some_colvar(self.ax0, self.true_colvar, "true")
-        self.onetime_some_colvar(self.ax3, self.colvar, "assumed")
+        x, y = self.onetime_some_colvar(self.ax_pos, self.true_colvar, "true")
 
-        self.plot_thermo(self.freq, self.ax1, self.ax2)
-        self.onetimeplot_bias_landscape(self.ax4)
-        self.plot_colvar_hist(self.ax5, x, y, self.true_colvar, "true")
-        self.plot_kehist(self.ax6)
+        if self.thermo_on:
+            self.plot_thermo(self.freq, self.ax_thermo, self.ax_thermo_right)
+        if self.bias_on:
+            self.onetimeplot_bias_landscape(self.ax_bias)
+        if self.true_colvar_on:
+            self.plot_colvar_hist(self.ax_true_colvar, x, y, self.true_colvar, "true")
+        if self.kehist_on:
+            self.plot_kehist(self.ax_kehist)
+        if self.assumed_colvar_on:
+            x, y = self.onetime_some_colvar(
+                self.ax_pos, self.colvar, "assumed", dry_run=True
+            )
+            self.plot_colvar_hist(self.ax_assumed_colvar, x, y, self.colvar, "assumed")
 
         fmt = self.type
         filename = f"{self.root}/{self.run_name}/oneplot"
@@ -283,7 +328,7 @@ class Plot(AllData):
             self.plot_PEL_1d(ax)
         else:
             raise NameError(
-                f"light plot cannot handle {self.colvar.colvardim}-dimension colvar, please put plot=false to run"
+                f"potential energy landscape plot cannot handle {self.colvar.colvardim}-dimension colvar, please put plot_pel=false to run"
             )
 
     def initialize_some_colvar_pos(self, ax, colvar, name):
@@ -347,7 +392,7 @@ class Plot(AllData):
         self.colv_lines[name].append(line)
         # plt.colorbar(cset2)
 
-    def onetime_some_colvar(self, ax, colvar, name):
+    def onetime_some_colvar(self, ax, colvar, name, dry_run=False):
 
         freq = self.freq
         stride = self.stride
@@ -366,34 +411,35 @@ class Plot(AllData):
         # ax.plot(x, y, 'o-', markersize=2.5, linewidth=1,
         #                color='k', alpha=1.0)
 
-        ax.scatter(
-            x,
-            y,
-            c=np.arange(len(x)),
-            cmap=self.OrangeAlpha,
-            linewidths=0.1,
-            edgecolors="k",
-        )
-        seg = []
-        pos = stat.positions
-        for idx in range(nconfig - 1):
-            if colvar.colvardim == 2:
-                colv0 = colvar.compute(pos[idx * stride])
-                colv1 = colvar.compute(pos[idx * stride + stride])
-            else:
-                colv0 = np.zeros([2])
-                colv1 = np.zeros([2])
-                colv0[0] = colvar.compute(pos[idx * stride])
-                colv1[0] = colvar.compute(pos[idx * stride + stride])
-                colv0[1] = stat.pe[idx * stride]
-                colv1[1] = stat.pe[idx * stride + stride]
-            seg += [[[colv0[0], colv0[1]], [colv1[0], colv1[1]]]]
+        if not dry_run:
+            ax.scatter(
+                x,
+                y,
+                c=np.arange(len(x)),
+                cmap=self.OrangeAlpha,
+                linewidths=0.1,
+                edgecolors="k",
+            )
+            seg = []
+            pos = stat.positions
+            for idx in range(nconfig - 1):
+                if colvar.colvardim == 2:
+                    colv0 = colvar.compute(pos[idx * stride])
+                    colv1 = colvar.compute(pos[idx * stride + stride])
+                else:
+                    colv0 = np.zeros([2])
+                    colv1 = np.zeros([2])
+                    colv0[0] = colvar.compute(pos[idx * stride])
+                    colv1[0] = colvar.compute(pos[idx * stride + stride])
+                    colv0[1] = stat.pe[idx * stride]
+                    colv1[1] = stat.pe[idx * stride + stride]
+                seg += [[[colv0[0], colv0[1]], [colv1[0], colv1[1]]]]
 
-        coll = LineCollection(
-            seg, cmap=self.OrangeAlpha, linewidths=(0.1), linestyles="solid"
-        )
-        coll.set_array(np.arange(len(pos) - 1))
-        ax.add_collection(coll)
+            coll = LineCollection(
+                seg, cmap=self.OrangeAlpha, linewidths=(0.1), linestyles="solid"
+            )
+            coll.set_array(np.arange(len(pos) - 1))
+            ax.add_collection(coll)
 
         return x, y
 

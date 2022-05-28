@@ -10,7 +10,6 @@ global_bounds:
 - 40.0
 - 40.0
 - 40.0
-light_plot: true
 mass: 1.0
 mc_bounds:
 - 2.0
@@ -21,6 +20,7 @@ mc_bounds:
 method: mc
 ndim: 5
 oneplot: true
+plot_bias: true
 pebias_thred: 0.0
 plot_boundary:
 - 0.0
